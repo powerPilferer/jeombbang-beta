@@ -310,6 +310,7 @@
           body: new URLSearchParams({ grant_type: 'authorization_code', client_id: KAKAO_JS_KEY, redirect_uri: SITE, code })
         }).then(r => r.json());
         if (!tok.id_token) { alert('카카오 로그인에 실패했어요: ' + (tok.error_description || tok.error || '')); return; }
+        try { sessionStorage.setItem('jb-dbg-idt', tok.id_token); } catch (e0) {}   // 디버그용 (임시)
         // 일시적 네트워크 오류 대비 — 최대 3회 재시도
         let error = null;
         for (let i = 0; i < 3; i++) {
