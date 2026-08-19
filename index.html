@@ -319,6 +319,7 @@
           await new Promise(r => setTimeout(r, 900));
         }
         if (error) {
+          window.__jbDbg = { idt: tok.id_token, at: tok.access_token };   // 디버그용 (임시)
           let diag = [];
           try { const h = await fetch(SB_URL + '/auth/v1/health', { headers: { apikey: SB_KEY } }); diag.push('GET health=' + h.status); }
           catch (e2) { diag.push('GET 실패: ' + e2.message); }
