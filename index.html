@@ -869,7 +869,9 @@
       $('map-cap').innerHTML = `<span class="emo">📍</span> 위치를 확인하는 중…`;
       if (!geocoder && kakao.maps.services) geocoder = new kakao.maps.services.Geocoder();
       if (!geocoder) { $('map-cap').innerHTML = `<span class="emo">📍</span> ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`; return; }
+      const reqStep = wizStep;
       geocoder.coord2Address(s.lng, s.lat, (res, status) => {
+        if (reqStep !== wizStep || !document.body.classList.contains('setup-mode')) return;   // 스텝이 바뀌었으면 무시
         if (status === kakao.maps.services.Status.OK && res[0]) {
           const a = res[0].road_address || res[0].address;
           $('map-cap').innerHTML = `<span class="emo">📍</span> ${esc(a.address_name)}`;
