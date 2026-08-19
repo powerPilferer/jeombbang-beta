@@ -209,7 +209,7 @@
     const SB_KEY = 'sb_publishable_kZD_r_s3lca-tdu8NqABnA_WVgHWKBo';
     const KAKAO_JS_KEY = 'e5a99ebf63e22edde31aa748643ad249';
     const SITE = location.origin + location.pathname;
-    const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { flowType: 'pkce', detectSessionInUrl: true } });
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const $ = id => document.getElementById(id);
 
@@ -287,51 +287,10 @@
     }
     const walkText = m => { const min = Math.max(1, Math.round(m / 80)); return min <= 40 ? `도보 약 ${min}분` : `약 ${(m / 1000).toFixed(1)}km`; };
 
-    // ── 카카오 로그인 (OIDC — 이메일 요청 없음)
+    // ── 카카오 로그인 — Supabase 표준 OAuth 흐름 (비즈앱 전환으로 이메일 scope 사용 가능)
     async function kakaoLogin() {
-      const state = crypto.randomUUID();
-      sessionStorage.setItem('kk-state', state);
-      location.href = 'https://kauth.kakao.com/oauth/authorize'
-        + '?client_id=' + KAKAO_JS_KEY
-        + '&redirect_uri=' + encodeURIComponent(SITE)
-        + '&response_type=code&scope=' + encodeURIComponent('openid profile_nickname profile_image')
-        + '&state=' + state;
-    }
-    async function handleKakaoCallback() {
-      const q = new URLSearchParams(location.search);
-      const code = q.get('code');
-      if (!code) return;
-      const stateOk = q.get('state') === sessionStorage.getItem('kk-state');
-      history.replaceState(null, '', location.pathname);
-      if (!stateOk) return;
-      try {
-        const tok = await fetch('https://kauth.kakao.com/oauth/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
-          body: new URLSearchParams({ grant_type: 'authorization_code', client_id: KAKAO_JS_KEY, redirect_uri: SITE, code })
-        }).then(r => r.json());
-        if (!tok.id_token) { alert('카카오 로그인에 실패했어요: ' + (tok.error_description || tok.error || '')); return; }
-        try { sessionStorage.setItem('jb-dbg-idt', tok.id_token); } catch (e0) {}   // 디버그용 (임시)
-        // 일시적 네트워크 오류 대비 — 최대 3회 재시도
-        let error = null;
-        for (let i = 0; i < 3; i++) {
-          ({ error } = await sb.auth.signInWithIdToken({ provider: 'kakao', token: tok.id_token, access_token: tok.access_token }));
-          if (!error) break;
-          console.error('signInWithIdToken 시도', i + 1, error);
-          await new Promise(r => setTimeout(r, 900));
-        }
-        if (error) {
-          window.__jbDbg = { idt: tok.id_token, at: tok.access_token };   // 디버그용 (임시)
-          let diag = [];
-          try { const h = await fetch(SB_URL + '/auth/v1/health', { headers: { apikey: SB_KEY } }); diag.push('GET health=' + h.status); }
-          catch (e2) { diag.push('GET 실패: ' + e2.message); }
-          try { const t = await fetch(SB_URL + '/auth/v1/token?grant_type=id_token', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: '{"provider":"kakao","id_token":"x"}' }); diag.push('POST token=' + t.status); }
-          catch (e3) { diag.push('POST 실패: ' + e3.message); }
-          alert('로그인 처리에 실패했어요: ' + error.message + '\n[진단] ' + diag.join(' · '));
-        }
-      } catch (e) {
-        alert('로그인 중 오류: ' + e.message);
-      }
+      const { error } = await sb.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: SITE } });
+      if (error) alert('카카오 로그인 시작 실패: ' + error.message);
     }
 
     // ── 상태
@@ -689,8 +648,9 @@
       $('map-note').textContent = '점빵이 베타';
     }
     async function boot() {
-      await handleKakaoCallback();
+      // 리다이렉트로 돌아온 ?code= 는 supabase-js(detectSessionInUrl)가 자동 교환 — URL만 정리
       const { data: { session } } = await sb.auth.getSession();
+      if (location.search.includes('code=')) history.replaceState(null, '', location.pathname);
       if (!session) { showLogin(); return; }
       $('login-view').classList.add('hidden');
       const profile = await ensureProfile(session.user);
