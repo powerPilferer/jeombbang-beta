@@ -310,8 +310,15 @@
           body: new URLSearchParams({ grant_type: 'authorization_code', client_id: KAKAO_JS_KEY, redirect_uri: SITE, code })
         }).then(r => r.json());
         if (!tok.id_token) { alert('카카오 로그인에 실패했어요: ' + (tok.error_description || tok.error || '')); return; }
-        const { error } = await sb.auth.signInWithIdToken({ provider: 'kakao', token: tok.id_token, access_token: tok.access_token });
-        if (error) alert('로그인 처리에 실패했어요: ' + error.message);
+        // 일시적 네트워크 오류 대비 — 최대 3회 재시도
+        let error = null;
+        for (let i = 0; i < 3; i++) {
+          ({ error } = await sb.auth.signInWithIdToken({ provider: 'kakao', token: tok.id_token, access_token: tok.access_token }));
+          if (!error) break;
+          console.error('signInWithIdToken 시도', i + 1, error);
+          await new Promise(r => setTimeout(r, 900));
+        }
+        if (error) alert('로그인 처리에 실패했어요: ' + error.message + '\n잠시 후 "카카오로 시작하기"를 다시 눌러주세요.');
       } catch (e) {
         alert('로그인 중 오류: ' + e.message);
       }
