@@ -28,6 +28,11 @@
       --star: #ffd60a;
       --kakao: #fee500;
     }
+    /* 픽셀 계단컷 모서리 (작은 요소용) */
+    .pxcut-sm { border-radius: 0 !important; clip-path: polygon(
+      0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+      4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
     /* 픽셀 강조체 — 타이틀 전용 */
     .px { font-family: 'Mona12', monospace; -webkit-font-smoothing: none; font-smooth: never; letter-spacing: 0; }
     /* 픽셀 이모지 (Mona12 내장) */
@@ -96,7 +101,7 @@
     body.setup-mode main { order: 1; flex: 0 0 auto; display: block; width: 100%; max-width: 430px;
       margin: 0 auto; overflow: visible;
       padding: calc(env(safe-area-inset-top) + 26px) 26px 0; }
-    body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 44px auto 0;
+    body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 20px auto 0;
       height: auto; min-height: 0; border-radius: 20px; overflow: hidden; }
     body.setup-mode.no-map #map-wrap { display: none; }
     body.setup-mode.no-map main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
@@ -262,7 +267,7 @@
   <main>
     <!-- 로그인 (첫화면 A안) -->
     <section id="login-view" class="hidden">
-      <span class="login-brand">점빵이 BETA</span>
+      <span class="login-brand">JEOMBBANG</span>
       <svg class="jb-char" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-label="점빵이 캐릭터">
         <g fill="#140e08">
           <rect x="3" y="1" width="3" height="1"/><rect x="10" y="1" width="3" height="1"/>
@@ -312,7 +317,7 @@
       </svg>
       <div class="title-group">
         <h2 class="px"><span class="beige">뭐먹정</span></h2>
-        <span class="expand px">뭐 먹을지 정해드림</span>
+        <span class="expand px pxcut-sm">뭐 먹을지 정해드림</span>
       </div>
       <p>내 동네, 내 시간에 맞춰<br>점빵이가 매일 딱 한 곳을 골라드려요.</p>
       <div class="login-grow"></div>
@@ -320,7 +325,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191600" d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5.1 4.7 6.5l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .8.1 1.3.1 5.5 0 10-3.4 10-7.8S17.5 3 12 3z"/></svg>
         카카오로 시작하기
       </button>
-      <div class="login-foot">이메일·연락처는 수집하지 않아요</div>
+      <div class="login-foot">이메일·연락처는 수집하지 않아요 — 카카오 닉네임만 받아요.</div>
     </section>
 
     <!-- 온보딩 위저드 -->
@@ -731,9 +736,11 @@
         const cur = nearestRad(s.radius_m);
         html = `${head}
           <h2 class="px"><span class="b">여기서부터</span>얼마나 멀리까지?</h2>
-          <p class="wiz-sub">이 안에서만 골라드릴게요.</p>`;
-        extra = `<div class="seg" id="wiz-rads">
-            ${RAD_OPTS.map(o => `<button type="button" class="${o.m === cur.m ? 'on' : ''}" data-m="${o.m}">${o.short}</button>`).join('')}
+          <p class="wiz-sub">이 안에서만 골라드릴게요.</p>
+          <div class="wiz-body" style="margin-top:24px">
+            <div class="seg" id="wiz-rads" style="margin-top:0">
+              ${RAD_OPTS.map(o => `<button type="button" class="${o.m === cur.m ? 'on' : ''}" data-m="${o.m}">${o.short}</button>`).join('')}
+            </div>
           </div>`;
       } else {
         const mts = (s.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
