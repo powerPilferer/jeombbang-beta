@@ -96,14 +96,17 @@
     body.setup-mode main { order: 1; flex: 0 0 auto; display: block; width: 100%; max-width: 430px;
       margin: 0 auto; overflow: visible;
       padding: calc(env(safe-area-inset-top) + 26px) 26px 0; }
-    body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 18px auto 0;
+    body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 44px auto 0;
       height: auto; min-height: 0; border-radius: 20px; overflow: hidden; }
     body.setup-mode.no-map #map-wrap { display: none; }
     body.setup-mode.no-map main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
     body.setup-mode.no-map #wiz-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     #setup-foot { display: none; }
     body.setup-mode #setup-foot { order: 3; display: block; width: 100%; max-width: 430px;
-      margin: 0 auto; padding: 18px 26px calc(env(safe-area-inset-bottom) + 26px); }
+      margin: 0 auto; padding: 0 26px calc(env(safe-area-inset-bottom) + 26px); }
+    #wiz-extra:not(:empty) { margin-top: 20px; }
+    #wiz-extra .seg { margin-top: 0; }
+    body.setup-mode .wiz-cta { margin-top: 26px; }
     @media (min-width: 900px) {
       body.setup-mode { display: flex; height: 100dvh; }
       body.setup-mode #map-wrap { grid-column: auto; grid-row: auto; }
@@ -332,7 +335,10 @@
       <div class="list" id="visited-list"></div>
     </section>
   </main>
-  <div id="setup-foot"><button type="button" class="wiz-cta" id="wiz-cta"></button></div>
+  <div id="setup-foot">
+    <div id="wiz-extra"></div>
+    <button type="button" class="wiz-cta" id="wiz-cta"></button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e5a99ebf63e22edde31aa748643ad249&libraries=services"></script>
@@ -705,7 +711,7 @@
 
       const backHidden = wizStep === 1 && !isEdit;
       const head = `<button type="button" class="wiz-back ${backHidden ? 'hide' : ''}" id="wiz-back" aria-label="뒤로">${BACK_SVG}</button>`;
-      let html = '';
+      let html = '', extra = '';
 
       if (wizStep === 1) {
         html = `${head}
@@ -725,11 +731,9 @@
         const cur = nearestRad(s.radius_m);
         html = `${head}
           <h2 class="px"><span class="b">여기서부터</span>얼마나 멀리까지?</h2>
-          <p class="wiz-sub">이 안에서만 골라드릴게요.</p>
-          <div class="wiz-body" style="margin-top:24px">
-            <div class="seg" id="wiz-rads">
-              ${RAD_OPTS.map(o => `<button type="button" class="${o.m === cur.m ? 'on' : ''}" data-m="${o.m}">${o.short}</button>`).join('')}
-            </div>
+          <p class="wiz-sub">이 안에서만 골라드릴게요.</p>`;
+        extra = `<div class="seg" id="wiz-rads">
+            ${RAD_OPTS.map(o => `<button type="button" class="${o.m === cur.m ? 'on' : ''}" data-m="${o.m}">${o.short}</button>`).join('')}
           </div>`;
       } else {
         const mts = (s.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
@@ -751,6 +755,7 @@
           </div>`;
       }
       $('wiz-view').innerHTML = html;
+      $('wiz-extra').innerHTML = extra;
 
       const cta = $('wiz-cta');
       cta.textContent = wizStep === 1 ? '여기로 할게요' : wizStep === 4 ? (isEdit ? '저장' : '이대로 시작하기') : '다음';
