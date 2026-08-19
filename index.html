@@ -751,9 +751,9 @@
       cta.onclick = () => wizNext();
       $('wiz-back').onclick = () => wizBack();
 
-      if (needMap) setupMapForStep();
       wireWizardStep();
       map.relayout();
+      if (needMap) { setupMapForStep(); setTimeout(setupMapForStep, 60); }
     }
 
     function wireWizardStep() {
@@ -826,8 +826,9 @@
         strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'shortdash',
         fillColor: '#ece1cb', fillOpacity: .22
       });
-      map.setCenter(new kakao.maps.LatLng(s.lat, s.lng));
-      map.setLevel(s.radius_m > 4000 ? 8 : s.radius_m > 2000 ? 7 : s.radius_m > 1000 ? 6 : 5);
+      const b = setupCircle.getBounds();
+      if (b) map.setBounds(b, 28, 28, 28, 28);
+      else map.setCenter(new kakao.maps.LatLng(s.lat, s.lng));
       const opt = nearestRad(s.radius_m);
       $('map-cap').innerHTML = `<span class="emo">${s.radius_m <= 1600 ? '🚶' : '🚗'}</span> ${opt.cap}`;
     }
