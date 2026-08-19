@@ -5,19 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>점빵이 — 끼니마다 딱 한 곳</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2096%2072%22%20width%3D%2232%22%20height%3D%2224%22%20shape-rendering%3D%22crispEdges%22%3E%3Cg%20fill%3D%22%23ece1cb%22%3E%3Crect%20x%3D%2232%22%20y%3D%228%22%20width%3D%2232%22%20height%3D%2216%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23f7b731%22%3E%3Crect%20x%3D%228%22%20y%3D%2232%22%20width%3D%2280%22%20height%3D%2224%22%2F%3E%3Crect%20x%3D%2224%22%20y%3D%2256%22%20width%3D%2248%22%20height%3D%228%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ffffff%22%3E%3Crect%20x%3D%2224%22%20y%3D%2240%22%20width%3D%228%22%20height%3D%2216%22%2F%3E%3Crect%20x%3D%2264%22%20y%3D%2240%22%20width%3D%228%22%20height%3D%2216%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
-  <meta name="theme-color" content="#1a1a1c">
+  <meta name="theme-color" content="#232322">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <style>
     :root {
       color-scheme: dark;
       --ink: #ffffff;
-      --muted: #98989f;
-      --paper: #1a1a1c;
-      --panel: rgba(28, 28, 30, .9);
-      --card: #2c2c2e;
-      --chip: #3a3a3c;
+      --muted: #8d8d94;
+      --paper: #232322;
+      --panel: rgba(35, 35, 34, .9);
+      --card: #2c2c2b;
+      --chip: #38383a;
+      --uline: rgba(236, 225, 203, .9);
       --line: rgba(255, 255, 255, .08);
       --sel: #3f3f43;
       --beige: #ece1cb;
@@ -26,6 +28,11 @@
       --star: #ffd60a;
       --kakao: #fee500;
     }
+    /* 픽셀 강조체 — 타이틀 전용 */
+    .px { font-family: 'Mona12', monospace; -webkit-font-smoothing: none; font-smooth: never; letter-spacing: 0; }
+    /* 픽셀 이모지 (Mona12 내장) */
+    .emo { font-family: "Mona12 Color Emoji", "Mona12 Emoji", sans-serif; -webkit-font-smoothing: none;
+      font-smooth: never; font-size: 12px; line-height: 1; vertical-align: -1px; display: inline-block; }
     * { box-sizing: border-box; }
     html, body { margin: 0; }
     body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--ink); background: var(--paper); }
@@ -69,44 +76,97 @@
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } } 50% { transform: translateY(-4px); } }
     .jb-char .lid { opacity: 0; animation: blink 4.6s linear infinite; }
     @keyframes blink { 0%, 91.5%, 96.5%, 100% { opacity: 0; } 92.5%, 95.5% { opacity: 1; } }
-    #login-view h2 { margin: 0; font-size: 54px; font-weight: 800; letter-spacing: -.055em; line-height: 1.1; }
+    #login-view h2 { margin: 0; font-size: 48px; font-weight: 700; line-height: 1.15; }
     .title-group { margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .expand { display: inline-block; background: rgba(236, 225, 203, .13); color: var(--beige);
-      padding: 6px 14px 7px; border-radius: 999px; font-weight: 700; font-size: 15px;
-      letter-spacing: -.02em; line-height: 1.35; white-space: nowrap; }
+      padding: 9px 16px; border-radius: 999px; font-weight: 700; font-size: 16px; line-height: 1.35; white-space: nowrap; }
     #login-view h2 .beige { color: var(--beige); }
     #login-view p { margin: 30px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
     .login-grow { flex: 1; }
     #kakao-login { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 340px;
-      padding: 15px; border: 0; border-radius: 14px; background: var(--kakao); color: #191600;
-      font-weight: 700; font-size: 15px; letter-spacing: -.01em; cursor: pointer; }
+      padding: 16px; border: 0; border-radius: 999px; background: var(--kakao); color: #191600;
+      font-weight: 700; font-size: 15px; letter-spacing: -.02em; cursor: pointer; }
     #kakao-login svg { width: 18px; height: 18px; flex: none; }
     .login-foot { margin-top: 13px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
 
-    /* ── 온보딩 ── */
-    .setup h2 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.03em; }
-    .setup-sub { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.55; }
-    .spot-ed { margin-top: 12px; padding: 14px; border-radius: 14px; background: var(--chip); display: grid; gap: 10px; }
-    .spot-ed .row { display: flex; gap: 8px; align-items: center; }
-    .sp-name { flex: 1; min-width: 0; border: 0; border-radius: 10px; padding: 11px; background: #1c1c1e; color: var(--ink); font-size: 14px; }
-    .sp-name:focus { outline: 1.5px solid #8d9db3; }
-    .sp-del { border: 0; background: #2c2c2e; color: var(--muted); border-radius: 8px; padding: 9px 11px; cursor: pointer; }
-    .sp-pick { border: 0; border-radius: 11px; padding: 12px; background: var(--blue); color: #fff; font-weight: 600; font-size: 13.5px; cursor: pointer; }
-    .sp-pick.picking { background: var(--star); color: var(--beige-ink); }
-    .sp-coord { font-size: 12px; color: #30d158; font-weight: 700; }
-    .opt-label { margin: 2px 2px 0; font-size: 11px; color: var(--muted); font-weight: 700; }
-    .opt-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    .opt { padding: 8px 12px; border: 0; border-radius: 999px; background: #2c2c2e; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
-    .opt.on { background: var(--beige); color: var(--beige-ink); font-weight: 700; }
-    .mt-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; background: var(--beige); color: var(--beige-ink); font-size: 13px; font-weight: 700; }
-    .mt-chip button { border: 0; background: none; color: var(--beige-ink); cursor: pointer; padding: 0; font-size: 13px; opacity: .7; }
-    .mt-add { display: flex; gap: 8px; align-items: center; }
-    .mt-add input[type=time] { border: 0; border-radius: 10px; padding: 9px 11px; background: #1c1c1e; color: var(--ink); font-size: 14px; }
-    .mt-add button { border: 0; border-radius: 10px; padding: 9px 13px; background: #2c2c2e; color: var(--ink); font-weight: 600; cursor: pointer; }
-    #add-spot { margin-top: 12px; width: 100%; padding: 12px; border: 1.5px dashed #48484a; border-radius: 12px; background: none; color: var(--muted); font-weight: 600; cursor: pointer; }
-    #setup-done { margin-top: 10px; width: 100%; padding: 14px; border: 0; border-radius: 14px; background: var(--beige); color: var(--beige-ink); font-weight: 700; font-size: 15px; cursor: pointer; }
-    #setup-done:disabled { opacity: .55; }
 
+    /* ── 온보딩 위저드 (setup-mode: 풀스크린 4스텝) ── */
+    body.setup-mode { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+    body.setup-mode .topbar { display: none; }
+    body.setup-mode main { order: 1; flex: 0 0 auto; display: block; width: 100%; max-width: 430px;
+      margin: 0 auto; overflow: visible;
+      padding: calc(env(safe-area-inset-top) + 26px) 26px 0; }
+    body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 18px auto 0;
+      height: auto; min-height: 0; border-radius: 20px; overflow: hidden; }
+    body.setup-mode.no-map #map-wrap { display: none; }
+    body.setup-mode.no-map main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+    body.setup-mode.no-map #wiz-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    #setup-foot { display: none; }
+    body.setup-mode #setup-foot { order: 3; display: block; width: 100%; max-width: 430px;
+      margin: 0 auto; padding: 18px 26px calc(env(safe-area-inset-bottom) + 26px); }
+    @media (min-width: 900px) {
+      body.setup-mode { display: flex; height: 100dvh; }
+      body.setup-mode #map-wrap { grid-column: auto; grid-row: auto; }
+    }
+    /* 진행 라인 · 뒤로가기 */
+    .wiz-prog { position: fixed; left: 0; right: 0; top: 0; height: 2px; background: rgba(255,255,255,.07); z-index: 950; }
+    .wiz-prog i { display: block; height: 100%; background: var(--beige); width: 25%;
+      transition: width .35s cubic-bezier(.4, 0, .2, 1); }
+    .wiz-back { border: 0; background: none; cursor: pointer; padding: 8px 8px 8px 0; margin: 0 0 22px -2px;
+      color: var(--muted); transition: color .15s; }
+    .wiz-back:hover { color: var(--beige); }
+    .wiz-back svg { display: block; width: 26px; height: 26px; image-rendering: pixelated; shape-rendering: crispEdges; }
+    .wiz-back.hide { visibility: hidden; }
+    /* 질문 */
+    .wiz h2 { margin: 0; font-size: 36px; font-weight: 700; line-height: 1.4; }
+    .wiz h2 .b { color: var(--beige); display: block; }
+    .wiz-sub { margin: 16px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.65; letter-spacing: -.01em; }
+    .wiz-body { margin-top: 44px; }
+    body.setup-mode.no-map .wiz-body { flex: 1; display: flex; flex-direction: column; }
+    /* 밑줄 입력 (동네 이름) */
+    .uline { width: 100%; border: 0; border-bottom: 1.5px solid var(--uline); background: none; color: var(--ink);
+      padding: 6px 2px 12px; font-size: 26px; font-weight: 700; letter-spacing: -.03em; font-family: inherit; }
+    .uline:focus { outline: none; border-bottom-color: #fff; }
+    .uline::placeholder { color: #5c5c62; font-weight: 600; }
+    .picks { display: flex; gap: 20px; margin-top: 22px; }
+    .pick { border: 0; background: none; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; }
+    .pick.on { color: var(--beige); font-weight: 800; }
+    .wiz-hint { margin-top: auto; color: #63636a; font-size: 12px; line-height: 1.6; padding-bottom: 6px; }
+    /* 세그먼트 (요일 · 반경 공용) */
+    .seg { display: flex; width: 100%; margin-top: 10px; background: var(--card); border-radius: 999px; padding: 4px; gap: 4px; }
+    .seg button { flex: 1; min-width: 0; border: 0; border-radius: 999px; padding: 15px 0; background: none;
+      color: var(--muted); font-size: 14.5px; font-weight: 700; letter-spacing: -.02em; cursor: pointer;
+      transition: .16s; font-family: inherit; }
+    .seg button.on { background: var(--beige); color: var(--beige-ink); font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+    .flabel { margin-top: 30px; color: var(--muted); font-size: 11.5px; font-weight: 800; letter-spacing: .07em; }
+    /* 시각 입력 */
+    .time-row { display: flex; width: 100%; gap: 10px; align-items: stretch; margin-top: 10px; }
+    .time-row input[type=time] { flex: 1; min-width: 0; border: 0; border-radius: 14px; background: var(--card);
+      color: var(--ink); padding: 16px 18px; font-size: 22px; font-weight: 700; font-family: inherit; letter-spacing: -.02em; }
+    .time-row input[type=time]:focus { outline: 2px solid rgba(236,225,203,.45); }
+    .time-row input[type=time]::-webkit-calendar-picker-indicator { filter: invert(1) brightness(2); opacity: .9;
+      cursor: pointer; width: 22px; height: 22px; padding: 2px; }
+    .time-add { flex: none; border: 0; border-radius: 999px; padding: 0 22px; background: var(--chip); color: var(--ink);
+      font-weight: 700; font-size: 15px; letter-spacing: -.02em; cursor: pointer; font-family: inherit; }
+    .mts { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+    .mt { display: inline-flex; align-items: center; gap: 10px; padding: 11px 15px; border-radius: 999px;
+      background: rgba(236,225,203,.22); border: 1px solid rgba(236,225,203,.42); color: var(--beige);
+      font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+    .mt b { font-weight: 800; color: #fff; }
+    .mt button { border: 0; background: none; color: var(--beige); opacity: .65; cursor: pointer;
+      padding: 2px 0 2px 2px; font-size: 13px; }
+    /* 지도 위 고정 핀 · 캡션 */
+    .center-pin { position: absolute; left: 50%; top: 50%; z-index: 460; width: 32px; height: 32px;
+      border-radius: 50% 50% 50% 7px; background: var(--beige-ink); border: 3.5px solid var(--beige);
+      transform: translate(-50%, -100%) rotate(-45deg); box-shadow: 0 8px 18px rgba(0,0,0,.32); pointer-events: none; }
+    .center-pin span { display: block; transform: rotate(45deg); text-align: center; line-height: 25px; font-size: 13px; }
+    .map-cap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 460; white-space: nowrap;
+      background: rgba(26,26,28,.9); border-radius: 999px; padding: 9px 15px; font-size: 12.5px; font-weight: 600;
+      pointer-events: none; max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis; }
+    /* CTA */
+    .wiz-cta { width: 100%; padding: 18px; border: 0; border-radius: 999px; background: var(--beige);
+      color: var(--beige-ink); font-weight: 800; font-size: 15.5px; letter-spacing: -.02em; cursor: pointer; font-family: inherit; }
+    .wiz-cta:disabled { opacity: .5; cursor: default; }
     /* ── 홈: 추천 카드 ── */
     .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .badge { display: inline-flex; padding: 6px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--blue); color: #fff; }
@@ -181,6 +241,7 @@
   </style>
 </head>
 <body>
+  <div class="wiz-prog hidden" id="wiz-prog"><i id="wiz-bar"></i></div>
   <header class="topbar">
     <h1>🍚 점빵이 <span class="beta">BETA</span></h1>
     <span class="who" id="who"></span>
@@ -190,6 +251,8 @@
 
   <div id="map-wrap">
     <div class="map-note" id="map-note">점빵이 베타</div>
+    <div class="center-pin hidden" id="center-pin"><span class="emo">🍚</span></div>
+    <div class="map-cap hidden" id="map-cap"></div>
     <div id="map"></div>
   </div>
 
@@ -245,8 +308,8 @@
         </g>
       </svg>
       <div class="title-group">
-        <h2><span class="beige">뭐먹정</span></h2>
-        <span class="expand">뭐 먹을지 정해드림</span>
+        <h2 class="px"><span class="beige">뭐먹정</span></h2>
+        <span class="expand px">뭐 먹을지 정해드림</span>
       </div>
       <p>내 동네, 내 시간에 맞춰<br>점빵이가 매일 딱 한 곳을 골라드려요.</p>
       <div class="login-grow"></div>
@@ -257,8 +320,8 @@
       <div class="login-foot">이메일·연락처는 수집하지 않아요</div>
     </section>
 
-    <!-- 온보딩 -->
-    <section id="setup-view" class="card setup hidden"></section>
+    <!-- 온보딩 위저드 -->
+    <section id="wiz-view" class="wiz hidden"></section>
 
     <!-- 홈 -->
     <section id="slot-bar" class="hidden"></section>
@@ -269,9 +332,10 @@
       <div class="list" id="visited-list"></div>
     </section>
   </main>
+  <div id="setup-foot"><button type="button" class="wiz-cta" id="wiz-cta"></button></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e5a99ebf63e22edde31aa748643ad249"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e5a99ebf63e22edde31aa748643ad249&libraries=services"></script>
   <script>
     // ═══ 점빵이 베타 v2 — 카카오 로그인 + Supabase 계정 저장 ═══
     const SB_URL = 'https://wbtgaydqpupxgmwmxbdv.supabase.co';
@@ -303,18 +367,7 @@
     map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.BOTTOMRIGHT);
     let radiusCircle = null, myOv = null, pinOv = null;
     const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.35, zIndex: 30 });
-    kakao.maps.event.addListener(map, 'click', ev => {
-      popupOv.setMap(null);
-      if (picking !== null && draft) {
-        draft[picking].lat = ev.latLng.getLat();
-        draft[picking].lng = ev.latLng.getLng();
-        tmpMarker.setPosition(ev.latLng);
-        tmpMarker.setMap(map);
-        picking = null;
-        renderSetup();
-      }
-    });
-    const tmpMarker = new kakao.maps.Marker();
+    kakao.maps.event.addListener(map, 'click', () => popupOv.setMap(null));
     function applySpotToMap(spot) {
       if (radiusCircle) radiusCircle.setMap(null);
       if (myOv) myOv.setMap(null);
@@ -419,9 +472,9 @@
     // ── 홈 렌더
     function renderHome() {
       const spot = activeSpot();
-      if (!spot) { openSetup(); return; }
+      if (!spot) { openWizard(false); return; }
       applySpotToMap(spot);
-      $('setup-view').classList.add('hidden');
+      $('wiz-view').classList.add('hidden');
       const mt = displaySlot(spot);
       currentSlotKey = mt ? mt.slot : 'dinner';
       renderSlotBar(spot);
@@ -587,85 +640,249 @@
       }));
     }
 
-    // ── 온보딩 위저드 (장소 → 반경 → 요일 + 받을 시각)
-    let picking = null, draft = null;
+    // ── 온보딩 위저드 — ①지도 핀 ②동네 이름 ③반경 ④요일·시각
     const RAD_OPTS = [
-      { label: '도보 5분', m: 400 }, { label: '도보 10분', m: 800 }, { label: '도보 15분', m: 1200 }, { label: '도보 20분', m: 1600 },
-      { label: '3km', m: 3000 }, { label: '5km', m: 5000 }, { label: '10km', m: 10000 }
+      { short: '5분',  label: '도보 5분',  cap: '도보 5분 · 약 400m',   m: 400 },
+      { short: '10분', label: '도보 10분', cap: '도보 10분 · 약 800m',  m: 800 },
+      { short: '15분', label: '도보 15분', cap: '도보 15분 · 약 1.2km', m: 1200 },
+      { short: '3km',  label: '3km',      cap: '차로 3km',            m: 3000 },
+      { short: '5km',  label: '5km',      cap: '차로 5km',            m: 5000 }
     ];
     const DAY_OPTS = [{ label: '평일', v: 'weekday' }, { label: '주말', v: 'weekend' }, { label: '매일', v: 'always' }];
-    function openSetup() {
-      draft = spots.length ? spots.map(s => ({ ...s, meal_times: (s.meal_times || []).map(m => ({ ...m })) })) :
-        [{ name: '회사', lat: null, lng: null, radius_m: 800, radius_label: '도보 10분', days: 'always', meal_times: [{ time: '18:30', slot: 'dinner' }] }];
+    const BACK_SVG = `<svg viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+        <rect x="1" y="6" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/>
+        <rect x="3" y="4" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/>
+        <rect x="4" y="9" width="1" height="1"/><rect x="2" y="6" width="10" height="1"/></svg>`;
+
+    let draft = null, editIdx = 0, wizStep = 1, isEdit = false;
+    let setupCircle = null, geocoder = null, pinMoveTimer = null;
+
+    const nearestRad = m => RAD_OPTS.reduce((a, b) => Math.abs(b.m - m) < Math.abs(a.m - m) ? b : a);
+
+    function openWizard(edit) {
+      isEdit = !!edit;
+      draft = spots.length
+        ? spots.map(s => ({ ...s, meal_times: (s.meal_times || []).map(m => ({ ...m })) }))
+        : [{ name: '', lat: null, lng: null, radius_m: 800, radius_label: '도보 10분', days: 'always', meal_times: [] }];
+      editIdx = 0;
+      wizStep = 1;
       ['slot-bar', 'hero', 'detail', 'visited-box'].forEach(id => $(id).classList.add('hidden'));
-      $('setup-view').classList.remove('hidden');
-      renderSetup();
+      $('wiz-view').classList.remove('hidden');
+      $('wiz-prog').classList.remove('hidden');
+      document.body.classList.add('setup-mode');
+      if (pinOv) pinOv.setMap(null);
+      if (radiusCircle) radiusCircle.setMap(null);
+      if (myOv) myOv.setMap(null);
+      popupOv.setMap(null);
+      $('map-note').classList.add('hidden');
+      renderWizard();
     }
-    function renderSetup() {
-      const el = $('setup-view');
-      el.innerHTML = `
-        <h2>🍚 나만의 점빵이</h2>
-        <p class="setup-sub">추천받을 동네와 시간을 정해주세요. 장소를 여러 개 두면 — 평일은 회사, 주말은 집 — 요일에 맞춰 알아서 바뀌어요.</p>
-        ${draft.map((s, i) => `
-          <div class="spot-ed" data-i="${i}">
-            <div class="row">
-              <input class="sp-name" placeholder="장소 이름 (회사, 집…)" maxlength="10" value="${esc(s.name)}">
-              ${draft.length > 1 ? '<button type="button" class="sp-del">✕</button>' : ''}
+    function closeWizard() {
+      document.body.classList.remove('setup-mode', 'no-map');
+      $('wiz-view').classList.add('hidden');
+      $('wiz-prog').classList.add('hidden');
+      $('center-pin').classList.add('hidden');
+      $('map-cap').classList.add('hidden');
+      $('map-note').classList.remove('hidden');
+      if (setupCircle) { setupCircle.setMap(null); setupCircle = null; }
+      map.relayout();
+    }
+
+    function renderWizard() {
+      const s = draft[editIdx];
+      const needMap = wizStep === 1 || wizStep === 3;
+      document.body.classList.toggle('no-map', !needMap);
+      $('wiz-bar').style.width = (wizStep * 25) + '%';
+      $('center-pin').classList.toggle('hidden', wizStep !== 1);
+      $('map-cap').classList.toggle('hidden', !needMap);
+
+      const backHidden = wizStep === 1 && !isEdit;
+      const head = `<button type="button" class="wiz-back ${backHidden ? 'hide' : ''}" id="wiz-back" aria-label="뒤로">${BACK_SVG}</button>`;
+      let html = '';
+
+      if (wizStep === 1) {
+        html = `${head}
+          <h2 class="px"><span class="b">자주 밥 먹는 곳,</span>어디쯤인가요?</h2>
+          <p class="wiz-sub">지도를 움직여 핀을 맞춰주세요.</p>`;
+      } else if (wizStep === 2) {
+        html = `${head}
+          <h2 class="px"><span class="b">동네의</span>이름은 무엇인가요?</h2>
+          <div class="wiz-body">
+            <input class="uline" id="wiz-name" placeholder="회사" maxlength="10" value="${esc(s.name)}">
+            <div class="picks" id="wiz-picks">
+              ${['회사', '집', '본가', '학교'].map(n => `<button type="button" class="pick ${s.name === n ? 'on' : ''}">${n}</button>`).join('')}
             </div>
-            <button type="button" class="sp-pick ${picking === i ? 'picking' : ''}">${picking === i ? '지도를 터치해 위치를 찍어주세요…' : (s.lat ? '📍 위치 다시 찍기' : '📍 지도에서 위치 찍기')}</button>
-            ${s.lat ? '<span class="sp-coord">위치 설정됨 ✓</span>' : ''}
-            <div class="opt-label">추천 반경</div>
-            <div class="opt-row">${RAD_OPTS.map(o => `<button type="button" class="opt r-opt ${s.radius_m === o.m ? 'on' : ''}" data-m="${o.m}" data-l="${o.label}">${o.label}</button>`).join('')}</div>
-            <div class="opt-label">적용 요일</div>
-            <div class="opt-row">${DAY_OPTS.map(o => `<button type="button" class="opt d-opt ${s.days === o.v ? 'on' : ''}" data-v="${o.v}">${o.label}</button>`).join('')}</div>
-            <div class="opt-label">추천받을 시각 — 끼니는 자동 분류돼요 (끼니별 1개, 최대 4개)</div>
-            <div class="opt-row">
-              ${(s.meal_times || []).map((m, mi) => `<span class="mt-chip">${m.time} ${SLOTS[m.slot].label}<button type="button" class="mt-del" data-mi="${mi}">✕</button></span>`).join('')}
+            <p class="wiz-hint">나중에 장소를 하나 더 추가하면<br>평일은 회사, 주말은 집처럼 자동으로 바뀌어요.</p>
+          </div>`;
+      } else if (wizStep === 3) {
+        const cur = nearestRad(s.radius_m);
+        html = `${head}
+          <h2 class="px"><span class="b">여기서부터</span>얼마나 멀리까지?</h2>
+          <p class="wiz-sub">이 안에서만 골라드릴게요.</p>
+          <div class="wiz-body" style="margin-top:24px">
+            <div class="seg" id="wiz-rads">
+              ${RAD_OPTS.map(o => `<button type="button" class="${o.m === cur.m ? 'on' : ''}" data-m="${o.m}">${o.short}</button>`).join('')}
             </div>
-            <div class="mt-add"><input type="time" class="mt-input" value="12:00"><button type="button" class="mt-plus">+ 추가</button></div>
-          </div>`).join('')}
-        ${draft.length < 2 ? '<button type="button" id="add-spot">+ 장소 추가 — 예: 주말엔 집 근처</button>' : ''}
-        <button type="button" id="setup-done">저장하고 시작하기</button>`;
-      el.querySelectorAll('.spot-ed').forEach(ed => {
-        const i = Number(ed.dataset.i);
-        ed.querySelector('.sp-name').addEventListener('input', e => { draft[i].name = e.target.value; });
-        ed.querySelector('.sp-pick').addEventListener('click', () => { picking = picking === i ? null : i; renderSetup(); });
-        ed.querySelector('.sp-del')?.addEventListener('click', () => { draft.splice(i, 1); picking = null; renderSetup(); });
-        ed.querySelectorAll('.r-opt').forEach(b => b.addEventListener('click', () => { draft[i].radius_m = Number(b.dataset.m); draft[i].radius_label = b.dataset.l; renderSetup(); }));
-        ed.querySelectorAll('.d-opt').forEach(b => b.addEventListener('click', () => { draft[i].days = b.dataset.v; renderSetup(); }));
-        ed.querySelectorAll('.mt-del').forEach(b => b.addEventListener('click', () => { draft[i].meal_times.splice(Number(b.dataset.mi), 1); renderSetup(); }));
-        ed.querySelector('.mt-plus').addEventListener('click', () => {
-          const t = ed.querySelector('.mt-input').value;
+          </div>`;
+      } else {
+        const mts = (s.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+        html = `${head}
+          <h2 class="px"><span class="b">언제</span>알려드릴까요?</h2>
+          <p class="wiz-sub">시각을 정하면 끼니는 알아서 구분해요.</p>
+          <div class="wiz-body">
+            <div class="flabel" style="margin-top:0">적용 요일</div>
+            <div class="seg" id="wiz-days">
+              ${DAY_OPTS.map(o => `<button type="button" class="${s.days === o.v ? 'on' : ''}" data-v="${o.v}">${o.label}</button>`).join('')}
+            </div>
+            <div class="flabel">추천받을 시각</div>
+            <div class="time-row"><input type="time" id="wiz-time" value="12:00"><button type="button" class="time-add" id="wiz-add">추가</button></div>
+            <div class="mts" id="wiz-mts">
+              ${mts.map((m, i) => `<span class="mt"><span class="emo">${SLOTS[m.slot].emoji}</span> <b>${m.time}</b> ${SLOTS[m.slot].label}
+                <button type="button" data-i="${i}">✕</button></span>`).join('')}
+            </div>
+            <p class="wiz-hint">끼니당 하나씩, 최대 4번까지.<br>아침 · 점심 · 저녁 · 야식은 시각으로 자동 분류돼요.</p>
+          </div>`;
+      }
+      $('wiz-view').innerHTML = html;
+
+      const cta = $('wiz-cta');
+      cta.textContent = wizStep === 1 ? '여기로 할게요' : wizStep === 4 ? (isEdit ? '저장' : '이대로 시작하기') : '다음';
+      cta.disabled = false;
+      cta.onclick = () => wizNext();
+      $('wiz-back').onclick = () => wizBack();
+
+      if (needMap) setupMapForStep();
+      wireWizardStep();
+      map.relayout();
+    }
+
+    function wireWizardStep() {
+      const s = draft[editIdx];
+      if (wizStep === 2) {
+        const nameEl = $('wiz-name');
+        setTimeout(() => nameEl.focus(), 80);
+        nameEl.addEventListener('input', e => {
+          s.name = e.target.value;
+          $('wiz-picks').querySelectorAll('.pick').forEach(b => b.classList.toggle('on', b.textContent === s.name));
+        });
+        $('wiz-picks').querySelectorAll('.pick').forEach(b => b.addEventListener('click', () => {
+          s.name = b.textContent;
+          nameEl.value = s.name;
+          $('wiz-picks').querySelectorAll('.pick').forEach(x => x.classList.toggle('on', x === b));
+        }));
+      } else if (wizStep === 3) {
+        $('wiz-rads').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+          const opt = RAD_OPTS.find(o => o.m === +b.dataset.m);
+          s.radius_m = opt.m;
+          s.radius_label = opt.label;
+          $('wiz-rads').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+          drawSetupCircle();
+        }));
+      } else if (wizStep === 4) {
+        $('wiz-days').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+          s.days = b.dataset.v;
+          $('wiz-days').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        }));
+        $('wiz-add').addEventListener('click', () => {
+          const t = $('wiz-time').value;
           if (!t) return;
           const slot = slotOf(t);
-          if (draft[i].meal_times.some(m => m.slot === slot)) { alert(`${SLOTS[slot].label} 시간은 이미 있어요 — 끼니별로 하나씩만 정할 수 있어요.`); return; }
-          draft[i].meal_times.push({ time: t, slot });
-          draft[i].meal_times.sort((a, b) => a.time.localeCompare(b.time));
-          renderSetup();
+          if (s.meal_times.some(m => m.slot === slot)) {
+            alert(`${SLOTS[slot].label} 시간은 이미 있어요 — 끼니별로 하나씩만 정할 수 있어요.`);
+            return;
+          }
+          s.meal_times.push({ time: t, slot });
+          s.meal_times.sort((a, b) => a.time.localeCompare(b.time));
+          renderWizard();
         });
+        $('wiz-mts').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+          const sorted = s.meal_times.slice().sort((a, b) => a.time.localeCompare(b.time));
+          const target = sorted[+b.dataset.i];
+          s.meal_times = s.meal_times.filter(m => m !== target);
+          renderWizard();
+        }));
+      }
+    }
+
+    // 지도 — 스텝1: 중앙 고정 핀, 스텝3: 반경 원
+    function setupMapForStep() {
+      const s = draft[editIdx];
+      const center = s.lat ? new kakao.maps.LatLng(s.lat, s.lng) : map.getCenter();
+      if (s.lat) map.setCenter(center);
+      if (wizStep === 1) {
+        if (setupCircle) { setupCircle.setMap(null); setupCircle = null; }
+        if (!s.lat) { s.lat = center.getLat(); s.lng = center.getLng(); }
+        if (map.getLevel() > 5) map.setLevel(4);
+        updatePinCaption();
+      } else {
+        drawSetupCircle();
+      }
+    }
+    function drawSetupCircle() {
+      const s = draft[editIdx];
+      if (setupCircle) setupCircle.setMap(null);
+      setupCircle = new kakao.maps.Circle({
+        map, center: new kakao.maps.LatLng(s.lat, s.lng), radius: s.radius_m,
+        strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'shortdash',
+        fillColor: '#ece1cb', fillOpacity: .22
       });
-      $('add-spot')?.addEventListener('click', () => {
-        draft.push({ name: '집', lat: null, lng: null, radius_m: 5000, radius_label: '5km', days: 'weekend', meal_times: [{ time: '18:30', slot: 'dinner' }] });
-        if (draft.length === 2 && draft[0].days === 'always') draft[0].days = 'weekday';
-        renderSetup();
+      map.setCenter(new kakao.maps.LatLng(s.lat, s.lng));
+      map.setLevel(s.radius_m > 4000 ? 8 : s.radius_m > 2000 ? 7 : s.radius_m > 1000 ? 6 : 5);
+      const opt = nearestRad(s.radius_m);
+      $('map-cap').innerHTML = `<span class="emo">${s.radius_m <= 1600 ? '🚶' : '🚗'}</span> ${opt.cap}`;
+    }
+    function updatePinCaption() {
+      const s = draft[editIdx];
+      $('map-cap').innerHTML = `<span class="emo">📍</span> 위치를 확인하는 중…`;
+      if (!geocoder && kakao.maps.services) geocoder = new kakao.maps.services.Geocoder();
+      if (!geocoder) { $('map-cap').innerHTML = `<span class="emo">📍</span> ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`; return; }
+      geocoder.coord2Address(s.lng, s.lat, (res, status) => {
+        if (status === kakao.maps.services.Status.OK && res[0]) {
+          const a = res[0].road_address || res[0].address;
+          $('map-cap').innerHTML = `<span class="emo">📍</span> ${esc(a.address_name)}`;
+        } else {
+          $('map-cap').innerHTML = `<span class="emo">📍</span> ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`;
+        }
       });
-      $('setup-done').addEventListener('click', async () => {
-        if (draft.some(s => !s.lat)) { alert('위치를 아직 안 찍은 장소가 있어요.\n"지도에서 위치 찍기"를 누른 뒤 지도를 터치해주세요.'); return; }
-        if (draft.some(s => !s.meal_times.length)) { alert('추천받을 시각을 최소 1개 정해주세요.'); return; }
-        draft.forEach((s, i) => { if (!s.name.trim()) s.name = '장소' + (i + 1); });
-        const btn = $('setup-done');
-        btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 저장 중…';
-        await sb.from('spots').delete().eq('user_id', me.id);
-        const { error } = await sb.from('spots').insert(draft.map(s => ({
-          user_id: me.id, name: s.name.trim(), lat: s.lat, lng: s.lng,
-          radius_m: s.radius_m, radius_label: s.radius_label, days: s.days, meal_times: s.meal_times
-        })));
-        btn.disabled = false; btn.textContent = '저장하고 시작하기';
-        if (error) { alert('저장 실패: ' + error.message); return; }
-        tmpMarker.setMap(null);
-        await loadSpots();
-        renderHome();
-      });
+    }
+    kakao.maps.event.addListener(map, 'center_changed', () => {
+      if (!document.body.classList.contains('setup-mode') || wizStep !== 1 || !draft) return;
+      const c = map.getCenter();
+      draft[editIdx].lat = c.getLat();
+      draft[editIdx].lng = c.getLng();
+      clearTimeout(pinMoveTimer);
+      pinMoveTimer = setTimeout(updatePinCaption, 450);
+    });
+
+    function wizBack() {
+      if (wizStep === 1) { if (isEdit) { closeWizard(); renderHome(); } return; }
+      wizStep--;
+      renderWizard();
+    }
+    async function wizNext() {
+      const s = draft[editIdx];
+      if (wizStep === 2 && !s.name.trim()) { alert('동네 이름을 정해주세요.'); return; }
+      if (wizStep < 4) { wizStep++; renderWizard(); return; }
+      if (!s.meal_times.length) { alert('추천받을 시각을 최소 1개 정해주세요.'); return; }
+      draft.forEach((d, i) => { if (!d.name.trim()) d.name = '장소' + (i + 1); });
+      if (draft.some(d => !d.lat)) { alert('위치가 설정되지 않은 장소가 있어요.'); return; }
+      const cta = $('wiz-cta');
+      cta.disabled = true;
+      cta.innerHTML = '<span class="spin"></span> 저장 중…';
+      await sb.from('spots').delete().eq('user_id', me.id);
+      const { error } = await sb.from('spots').insert(draft.map(d => ({
+        user_id: me.id, name: d.name.trim(), lat: d.lat, lng: d.lng,
+        radius_m: d.radius_m, radius_label: d.radius_label, days: d.days, meal_times: d.meal_times
+      })));
+      if (error) {
+        cta.disabled = false;
+        cta.textContent = isEdit ? '저장' : '이대로 시작하기';
+        alert('저장 실패: ' + error.message);
+        return;
+      }
+      closeWizard();
+      await loadSpots();
+      renderHome();
     }
 
     // ── 데이터 로드
@@ -711,7 +928,8 @@
     function showLogin() {
       document.body.classList.add('login-mode');
       $('login-view').classList.remove('hidden');
-      ['setup-view', 'slot-bar', 'hero', 'detail', 'visited-box'].forEach(id => $(id).classList.add('hidden'));
+      ['wiz-view', 'slot-bar', 'hero', 'detail', 'visited-box'].forEach(id => $(id).classList.add('hidden'));
+      closeWizard();
       $('cfg-btn').classList.add('hidden');
       $('logout-btn').classList.add('hidden');
       $('who').textContent = '';
@@ -732,14 +950,11 @@
       $('cfg-btn').classList.remove('hidden');
       $('logout-btn').classList.remove('hidden');
       await Promise.all([loadSpots(), loadPlaces(), loadReviews(), loadSkips()]);
-      if (!spots.length) openSetup();
+      if (!spots.length) openWizard(false);
       else renderHome();
     }
     $('kakao-login').addEventListener('click', kakaoLogin);
-    $('cfg-btn').addEventListener('click', () => {
-      if (!$('setup-view').classList.contains('hidden') && spots.length) { $('setup-view').classList.add('hidden'); renderHome(); }
-      else openSetup();
-    });
+    $('cfg-btn').addEventListener('click', () => openWizard(true));
     $('logout-btn').addEventListener('click', async () => {
       if (!confirm('로그아웃할까요?')) return;
       await sb.auth.signOut();
