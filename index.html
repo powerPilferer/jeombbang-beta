@@ -318,7 +318,14 @@
           console.error('signInWithIdToken 시도', i + 1, error);
           await new Promise(r => setTimeout(r, 900));
         }
-        if (error) alert('로그인 처리에 실패했어요: ' + error.message + '\n잠시 후 "카카오로 시작하기"를 다시 눌러주세요.');
+        if (error) {
+          let diag = [];
+          try { const h = await fetch(SB_URL + '/auth/v1/health', { headers: { apikey: SB_KEY } }); diag.push('GET health=' + h.status); }
+          catch (e2) { diag.push('GET 실패: ' + e2.message); }
+          try { const t = await fetch(SB_URL + '/auth/v1/token?grant_type=id_token', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: '{"provider":"kakao","id_token":"x"}' }); diag.push('POST token=' + t.status); }
+          catch (e3) { diag.push('POST 실패: ' + e3.message); }
+          alert('로그인 처리에 실패했어요: ' + error.message + '\n[진단] ' + diag.join(' · '));
+        }
       } catch (e) {
         alert('로그인 중 오류: ' + e.message);
       }
