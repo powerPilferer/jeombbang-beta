@@ -655,7 +655,14 @@
         <rect x="4" y="9" width="1" height="1"/><rect x="2" y="6" width="10" height="1"/></svg>`;
 
     let draft = null, editIdx = 0, wizStep = 1, isEdit = false;
-    let setupCircle = null, geocoder = null, pinMoveTimer = null;
+    let setupCircle = null, geocoder = null, pinMoveTimer = null, mapBusy = false, geoTried = false;
+    function relayoutKeep() {
+      const keep = map.getCenter();
+      mapBusy = true;
+      map.relayout();
+      map.setCenter(keep);
+      setTimeout(() => { map.setCenter(keep); mapBusy = false; }, 220);
+    }
 
     const nearestRad = m => RAD_OPTS.reduce((a, b) => Math.abs(b.m - m) < Math.abs(a.m - m) ? b : a);
 
@@ -685,7 +692,7 @@
       $('map-cap').classList.add('hidden');
       $('map-note').classList.remove('hidden');
       if (setupCircle) { setupCircle.setMap(null); setupCircle = null; }
-      map.relayout();
+      relayoutKeep();
     }
 
     function renderWizard() {
@@ -752,8 +759,8 @@
       $('wiz-back').onclick = () => wizBack();
 
       wireWizardStep();
-      map.relayout();
-      if (needMap) { setupMapForStep(); setTimeout(setupMapForStep, 60); }
+      relayoutKeep();
+      if (needMap) setTimeout(setupMapForStep, 240);
     }
 
     function wireWizardStep() {
@@ -811,8 +818,26 @@
       if (s.lat) map.setCenter(center);
       if (wizStep === 1) {
         if (setupCircle) { setupCircle.setMap(null); setupCircle = null; }
-        if (!s.lat) { s.lat = center.getLat(); s.lng = center.getLng(); }
         if (map.getLevel() > 5) map.setLevel(4);
+        if (!s.lat && !geoTried && navigator.geolocation) {
+          geoTried = true;
+          $('map-cap').innerHTML = `<span class="emo">📍</span> 현재 위치를 찾는 중…`;
+          navigator.geolocation.getCurrentPosition(pos => {
+            if (wizStep !== 1 || !draft) return;
+            mapBusy = true;
+            const here = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+            map.setCenter(here);
+            map.setLevel(4);
+            draft[editIdx].lat = pos.coords.latitude;
+            draft[editIdx].lng = pos.coords.longitude;
+            setTimeout(() => { mapBusy = false; updatePinCaption(); }, 250);
+          }, () => {
+            if (!draft[editIdx].lat) { draft[editIdx].lat = center.getLat(); draft[editIdx].lng = center.getLng(); }
+            updatePinCaption();
+          }, { timeout: 6000, maximumAge: 300000 });
+          return;
+        }
+        if (!s.lat) { s.lat = center.getLat(); s.lng = center.getLng(); }
         updatePinCaption();
       } else {
         drawSetupCircle();
@@ -827,8 +852,10 @@
         fillColor: '#ece1cb', fillOpacity: .22
       });
       const b = setupCircle.getBounds();
+      mapBusy = true;
       if (b) map.setBounds(b, 28, 28, 28, 28);
       else map.setCenter(new kakao.maps.LatLng(s.lat, s.lng));
+      setTimeout(() => { mapBusy = false; }, 240);
       const opt = nearestRad(s.radius_m);
       $('map-cap').innerHTML = `<span class="emo">${s.radius_m <= 1600 ? '🚶' : '🚗'}</span> ${opt.cap}`;
     }
@@ -847,7 +874,7 @@
       });
     }
     kakao.maps.event.addListener(map, 'center_changed', () => {
-      if (!document.body.classList.contains('setup-mode') || wizStep !== 1 || !draft) return;
+      if (mapBusy || !document.body.classList.contains('setup-mode') || wizStep !== 1 || !draft) return;
       const c = map.getCenter();
       draft[editIdx].lat = c.getLat();
       draft[editIdx].lng = c.getLng();
