@@ -657,7 +657,9 @@
       if (!pushSupported()) return { ok: false, msg: '이 브라우저는 알림을 지원하지 않아요.' };
       if (isIOS && !isStandalone()) return { ok: false, msg: '아이폰은 공유 → 홈 화면에 추가한 앱에서 알림을 켤 수 있어요.' };
       const perm = await Notification.requestPermission();
-      if (perm !== 'granted') return { ok: false, msg: '알림 권한이 꺼져 있어요 — 브라우저 설정에서 허용해주세요.' };
+      if (perm !== 'granted') return { ok: false, msg: isIOS && isStandalone()
+        ? '알림이 꺼져 있어요 — 아이폰 설정 → 뭐먹정 → 알림에서 허용한 뒤 다시 눌러주세요.'
+        : '알림이 꺼져 있어요 — 브라우저 주소창 옆 사이트 설정에서 알림을 허용한 뒤 다시 눌러주세요.' };
       const reg = await navigator.serviceWorker.ready;
       let sub = await reg.pushManager.getSubscription();
       if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUB) });
@@ -673,7 +675,7 @@
     }
     async function updatePushCta() {
       const btn = $('push-cta');
-      if (!pushSupported() || Notification.permission === 'denied') { btn.classList.add('hidden'); return; }
+      if (!pushSupported()) { btn.classList.add('hidden'); return; }
       const sub = await getPushSub();
       btn.classList.toggle('hidden', !!sub);
     }
