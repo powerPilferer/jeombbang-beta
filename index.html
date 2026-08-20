@@ -39,6 +39,7 @@
     .emo.lg { font-size: 48px; }
     * { box-sizing: border-box; }
     html, body { margin: 0; }
+    body, body * { touch-action: manipulation; }   /* 더블탭 확대 방지 (핀치 확대는 유지) */
     body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--ink); background: var(--paper); }
     button, input { font: inherit; }
     .hidden { display: none !important; }
