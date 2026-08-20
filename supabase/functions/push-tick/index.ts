@@ -31,8 +31,14 @@ Deno.serve(async (req) => {
   const wd = kst.getUTCDay();
   const weekendLike = wd === 0 || wd === 6 || HOLIDAYS.has(today);
 
-  const { data: spots } = await sb.from("spots").select("user_id,days,meal_times,created_at").order("created_at");
+  const { data: spots } = await sb.from("spots").select("user_id,days,meal_times,lat,lng,radius_m,created_at").order("created_at");
   if (!spots) return new Response("no spots");
+  const { data: places } = await sb.from("places").select("lat,lng,slots").eq("active", true);
+  const distM = (a1: number, o1: number, a2: number, o2: number) => {
+    const R = 6371000, r = (x: number) => x * Math.PI / 180;
+    const h = Math.sin(r(a2 - a1) / 2) ** 2 + Math.cos(r(a1)) * Math.cos(r(a2)) * Math.sin(r(o2 - o1) / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
 
   // 사용자별 활성 장소 (평일/주말·공휴일 2슬롯 모델)
   const byUser = new Map<string, any[]>();
@@ -46,7 +52,12 @@ Deno.serve(async (req) => {
       (list.length > 1 ? list.find((s) => s.days === (weekendLike ? "weekend" : "weekday")) : null) ||
       list.find((s) => s.days === "always") || list[0];
     for (const mt of active.meal_times || []) {
-      if (windowTimes.includes(mt.time)) due.push({ user_id: uid, slot: mt.slot, time: mt.time });
+      if (!windowTimes.includes(mt.time)) continue;
+      // 보여줄 후보가 없는 동네·시간대면 알림을 보내지 않음 (발굴중 화면만 보게 되므로)
+      const hasCand = (places || []).some((p) =>
+        (p.slots || []).includes(mt.slot) && distM(active.lat, active.lng, p.lat, p.lng) <= active.radius_m);
+      if (!hasCand) continue;
+      due.push({ user_id: uid, slot: mt.slot, time: mt.time });
     }
   }
   if (!due.length) return new Response("idle");
