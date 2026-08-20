@@ -65,6 +65,8 @@
     .topbar-in { display: flex; align-items: center; gap: 9px; max-width: 394px; margin: 0 auto; }
     .topbar .brand { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
     .topbar .jb-char { image-rendering: pixelated; }
+    .beta-chip { margin-left: 2px; padding: 4px 9px; border-radius: 999px; background: rgba(236,225,203,.13);
+      color: var(--beige); font-size: 10px; font-weight: 800; letter-spacing: .02em; }
     .who { color: var(--muted); font-size: 12.5px; font-weight: 600; }
     .ic-btn { border: 0; background: var(--card); border-radius: 11px; padding: 8px 9px; cursor: pointer; color: var(--ink); transition: color .15s; display: grid; place-items: center; }
     .ic-btn:hover { color: var(--beige); }
@@ -128,7 +130,7 @@
         grid-column: 1; grid-row: 2; overflow-y: auto; width: 100%; max-width: none;
         padding: 16px 38px calc(env(safe-area-inset-bottom) + 96px); }
       body:not(.login-mode):not(.setup-mode):not(.settings-mode) .map-size { display: none; }
-      body:not(.login-mode):not(.setup-mode):not(.settings-mode) .fab { left: 235px; }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) .fab { left: 50%; }
     }
 
     /* ── 카드 공통 ── */
@@ -142,6 +144,8 @@
     #login-view { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
       padding: calc(env(safe-area-inset-top) + 52px) 12px 6px; }
     .login-brand { font-size: 13px; font-weight: 800; letter-spacing: .02em; color: var(--muted); }
+    .login-brand .lb-beta { font-style: normal; margin-left: 3px; padding: 2px 7px; border-radius: 999px;
+      background: rgba(236,225,203,.13); color: var(--beige); font-size: 9.5px; letter-spacing: .06em; vertical-align: 1px; }
     #login-view .jb-char { width: 96px; height: 96px; margin-top: 0; image-rendering: pixelated; animation: bob 1.4s steps(1, end) infinite; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     .jb-char .lid { opacity: 0; animation: blink 4.6s linear infinite; }
@@ -440,7 +444,7 @@
             <rect x="4" y="9" width="2" height="1"/><rect x="10" y="9" width="2" height="1"/>
           </g>
         </g>
-      </svg> 점빵이</div>
+      </svg> 점빵이 <span class="beta-chip">베타 · 간보는 중</span></div>
     <span class="who" id="who"></span>
     <button type="button" id="logout-btn" class="ic-btn hidden" title="로그아웃" aria-label="로그아웃">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -478,7 +482,7 @@
   <main>
     <!-- 로그인 -->
     <section id="login-view" class="hidden">
-      <span class="login-brand">JEOMBBANG</span>
+      <span class="login-brand">JEOMBBANG <i class="lb-beta">BETA</i></span>
       <div class="login-grow"></div>
       <svg class="jb-char" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-label="점빵이 캐릭터">
         <g fill="#140e08">
