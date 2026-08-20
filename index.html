@@ -272,7 +272,7 @@
     /* ── 좌하단 플로팅 — 내 동네 설정 ── */
     .fab { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 18px); z-index: 950;
       border: 1px solid rgba(236,225,203,.25); border-radius: 999px; padding: 13px 22px;
-      background: rgba(44,44,46,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      background: #0d0d0f; border-color: rgba(236,225,203,.5);
       color: var(--beige); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
       font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; font-family: inherit;
       box-shadow: 0 10px 26px rgba(0,0,0,.45); transition: transform .15s; }
@@ -286,17 +286,16 @@
     #settings-view h2 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.4; }
     #settings-view h2 .b { color: var(--beige); display: block; }
     #settings-view .sub { margin: 14px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
-    .slots { margin-top: 36px; display: grid; gap: 13px; }
-    .slot-label { color: var(--muted); font-size: 11.5px; font-weight: 800; letter-spacing: .07em; margin: 0 2px -4px; }
-    .slot-label i { font-style: normal; font-weight: 600; letter-spacing: 0; opacity: .7; }
-    .slot-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 19px 20px; border: 0; border-radius: 18px;
+    .slots { margin-top: 32px; display: grid; gap: 12px; }
+    .slot-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 20px; border: 0; border-radius: 18px;
       background: var(--card); cursor: pointer; text-align: left; color: var(--ink); font-family: inherit; transition: .15s; }
     .slot-card:active { transform: scale(.985); }
-    .slot-card .ic { flex: none; font-size: 26px; line-height: 1; }
-    .slot-card .tx { flex: 1; min-width: 0; }
-    .slot-card .nm { display: block; font-size: 16.5px; font-weight: 800; letter-spacing: -.02em; }
-    .slot-card .mt2 { display: block; margin-top: 4px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
-    .slot-card .arr { flex: none; color: #5c5c62; font-size: 16px; }
+    .slot-card .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+    .sl-chip { align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: rgba(236,225,203,.13);
+      color: var(--beige); font-size: 10.5px; font-weight: 800; letter-spacing: .04em; }
+    .slot-card .nm { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+    .slot-card .mt2 { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+    .slot-card .re { flex: none; color: var(--beige); font-size: 12px; font-weight: 800; white-space: nowrap; }
     .slot-card.empty { border: 1.5px dashed #48484a; background: none; color: var(--muted); }
     .slot-card.empty .nm { color: var(--beige); font-size: 14.5px; font-weight: 700; }
     .slot-card.empty .mt2 { font-size: 12px; }
@@ -1443,32 +1442,29 @@
       const spotCard = (s, i) => {
         const mts = (s.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
         const times = mts.map(m => `<span class="emo">${SLOTS[m.slot].emoji}</span> ${m.time}`).join(' · ');
+        const chip = spots.length === 1 ? '매일' : (i === 0 ? '평일' : '주말 · 공휴일');
         return `<button type="button" class="slot-card" data-i="${i}">
-          <span class="ic"><span class="emo" style="font-size:26px">${i === 0 ? '🏢' : '🏠'}</span></span>
-          <span class="tx"><span class="nm">${esc(s.name)}</span>
-            <span class="mt2">${esc(s.radius_label)}${times ? '<br>' + times : ''}</span></span>
-          <span class="arr">›</span>
+          <span class="tx"><span class="sl-chip">${chip}</span>
+            <span class="nm">${esc(s.name)}</span>
+            <span class="mt2">${esc(s.radius_label)}${times ? ' · ' + times : ''}</span></span>
+          <span class="re">다시 설정 ›</span>
         </button>`;
       };
       let slotsHtml = '';
-      if (spots.length >= 1) {
-        slotsHtml += `<div class="slot-label">${spots.length === 1 ? '매일 <i>— 주말 장소를 추가하면 평일 전용이 돼요</i>' : '평일'}</div>` + spotCard(spots[0], 0);
-      }
+      if (spots.length >= 1) slotsHtml += spotCard(spots[0], 0);
       if (spots.length >= 2) {
-        slotsHtml += `<div class="slot-label" style="margin-top:10px">주말 · 공휴일</div>` + spotCard(spots[1], 1)
+        slotsHtml += spotCard(spots[1], 1)
           + `<button type="button" class="slot-del" id="slot-del">주말 장소 삭제</button>`;
       } else {
-        slotsHtml += `<div class="slot-label" style="margin-top:10px">주말 · 공휴일</div>
-          <button type="button" class="slot-card empty" id="slot-add">
-            <span class="ic"><span class="emo" style="font-size:26px">🏠</span></span>
-            <span class="tx"><span class="nm">+ 주말엔 다른 동네에서 드세요?</span>
+        slotsHtml += `<button type="button" class="slot-card empty" id="slot-add">
+            <span class="tx"><span class="nm">+ 주말 · 공휴일 동네 추가</span>
               <span class="mt2">지금은 평일 장소로 주말에도 추천해드려요</span></span>
           </button>`;
       }
       view.innerHTML = `
         <button type="button" class="wiz-back" id="set-back" aria-label="뒤로">${BACK_SVG}</button>
-        <h2 class="px"><span class="b">내 동네</span>어디서 드세요?</h2>
-        <p class="sub">평일과 주말·공휴일, 두 곳까지 정할 수 있어요.</p>
+        <h2 class="px"><span class="b">내 동네</span></h2>
+        <p class="sub">카드를 누르면 처음부터 다시 설정할 수 있어요.</p>
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
