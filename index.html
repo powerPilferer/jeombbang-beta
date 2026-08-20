@@ -225,6 +225,7 @@
     .time-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
     .time-hint { position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
       color: #5c5c62; font-size: 13px; font-weight: 600; pointer-events: none; }
+    @media (hover: hover) and (pointer: fine) { .time-hint { display: none !important; } }  /* PC는 브라우저 자체 표시(--:--)가 있음 */
     .time-row input[type=time] { flex: 1; min-width: 0; border: 0; border-radius: 14px; background: var(--card);
       color: var(--ink); padding: 16px 18px; font-size: 22px; font-weight: 700; font-family: inherit; letter-spacing: -.02em; }
     .time-row input[type=time]:focus { outline: 2px solid rgba(236,225,203,.45); }
