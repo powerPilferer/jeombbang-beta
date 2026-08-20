@@ -349,16 +349,10 @@
     .list { display: grid; gap: 9px; }
 
     /* ── 당겨서 새로고침 ── */
-    .ptr { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 6px); z-index: 960;
-      transform: translate(-50%, -70px); width: 46px; height: 46px; border-radius: 50%;
-      background: var(--card); border: 1px solid rgba(236,225,203,.25);
-      display: grid; place-items: center; box-shadow: 0 8px 20px rgba(0,0,0,.4);
-      opacity: 0; visibility: hidden;
-      transition: transform .2s ease, border-color .15s, opacity .15s, visibility .15s; pointer-events: none; }
-    .ptr.dragging, .ptr.busy { opacity: 1; visibility: visible; }
-    .ptr.dragging { transition: border-color .15s, opacity .15s; }
-    .ptr svg { width: 20px; height: 20px; display: block; color: var(--muted); }
-    .ptr.ready { border-color: var(--beige); }
+    .ptr { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 14px); z-index: 1;
+      transform: translateX(-50%); width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; opacity: 0; pointer-events: none; }
+    .ptr svg { width: 22px; height: 22px; display: block; color: var(--muted); }
     .ptr.ready svg { color: var(--beige); }
     .ptr.busy svg { animation: sp .8s linear infinite; color: var(--beige); }
 
@@ -1914,12 +1908,20 @@
     document.body.appendChild(ptrEl);
     const ptrIcon = ptrEl.querySelector('svg');
     let ptrStartY = null, ptrPull = 0, ptrBusy = false;
+    const pageEls = () => [document.querySelector('.topbar'), $('map-wrap'), document.querySelector('main')];
+    function setPagePull(y, animate) {
+      pageEls().forEach(el => {
+        el.style.transition = animate ? 'transform .22s ease' : '';
+        el.style.transform = y ? `translateY(${y}px)` : '';
+      });
+    }
     const inHome = () => me && !document.body.classList.contains('login-mode')
       && !document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode');
     const atTop = () => (document.scrollingElement.scrollTop + document.querySelector('main').scrollTop) <= 0;
     function ptrReset() {
-      ptrEl.classList.remove('dragging', 'ready');
-      ptrEl.style.transform = 'translate(-50%, -70px)';
+      ptrEl.classList.remove('dragging', 'ready', 'busy');
+      setPagePull(0, true);
+      ptrEl.style.opacity = 0;
       ptrIcon.style.transform = '';
     }
     document.addEventListener('touchstart', e => {
@@ -1933,14 +1935,15 @@
       if (dy <= 0 || !atTop()) { if (ptrPull) ptrReset(); ptrPull = 0; ptrStartY = dy <= 0 ? ptrStartY : null; return; }
       ptrPull = Math.min(dy * 0.5, 105);
       if (ptrPull > 8) {
-        e.preventDefault();   // 브라우저 고무줄 대신 인디케이터가 내려옴
+        e.preventDefault();   // 브라우저 고무줄 대신 페이지가 통째로 내려옴
         ptrEl.classList.add('dragging');
         const wasReady = ptrEl.classList.contains('ready');
         const ready = ptrPull > 55;
         ptrEl.classList.toggle('ready', ready);
         if (ready && !wasReady && navigator.vibrate) navigator.vibrate(12);   // 임계점 햅틱 (안드로이드)
         ptrIcon.style.transform = `rotate(${ptrPull * 3.4}deg)`;
-        ptrEl.style.transform = `translate(-50%, ${ptrPull - 70}px)`;
+        ptrEl.style.opacity = Math.min(1, ptrPull / 45);
+        setPagePull(ptrPull, false);
       }
     }, { passive: false });
     async function ptrEnd() {
@@ -1951,12 +1954,13 @@
       if (!trigger) { ptrReset(); return; }
       ptrBusy = true;
       ptrEl.classList.add('busy');
-      ptrEl.style.transform = 'translate(-50%, 14px)';
+      ptrEl.style.opacity = 1;
+      setPagePull(62, true);   // 갱신 도는 동안 페이지를 살짝 내린 채 유지
       try {
         await Promise.all([loadSpots(), loadPicks(), loadReviews(), loadPlaces()]);
         renderHome();
       } catch (_) {}
-      setTimeout(() => { ptrEl.classList.remove('busy'); ptrReset(); ptrBusy = false; }, 350);
+      setTimeout(() => { ptrReset(); ptrBusy = false; }, 300);
     }
     document.addEventListener('touchend', ptrEnd);
     document.addEventListener('touchcancel', ptrEnd);
