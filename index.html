@@ -54,6 +54,7 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; }
     body, body * { touch-action: manipulation; }   /* 더블탭 확대 방지 (핀치 확대는 유지) */
+    #map-wrap, #map-wrap * { touch-action: none; }  /* 지도 위 제스처는 지도가 전담 — 페이지 스크롤 안 섞임 */
     body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--ink); background: var(--paper); }
     button, input { font: inherit; }
     .hidden { display: none !important; }
@@ -1955,7 +1956,7 @@
       ptrIcon.style.transform = '';
     }
     document.addEventListener('touchstart', e => {
-      if (!inHome() || ptrBusy || !atTop()) { ptrStartY = null; return; }
+      if (!inHome() || ptrBusy || !atTop() || e.target.closest('#map-wrap')) { ptrStartY = null; return; }
       ptrStartY = e.touches[0].clientY;
       ptrPull = 0;
     }, { passive: true });
