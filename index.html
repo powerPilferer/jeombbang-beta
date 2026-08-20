@@ -754,22 +754,16 @@
       revealedPlaces = shownRows.map(k => places.find(p => p.id === k.place_id)).filter(Boolean);
       if (!revealedPlaces.length) {
         if (!ranked.length) {
-          // 후보 없음 — 발굴 요청
+          // 후보 없음 — 발굴 요청 자동 접수 + 잠김 스타일 안내
           ['hero-wrap', 'detail'].forEach(id => $(id).classList.add('hidden'));
           showPin(null);
           const np = $('no-pick');
-          np.classList.remove('hidden');
+          np.className = 'card locked';
           np.innerHTML = `
-            <div class="hero-kicker"><span class="badge"><span class="emo">🍚</span> 오늘 ${SLOTS[currentSlotKey].label} 뭐먹정</span><small class="muted">${esc(spot.name)} · ${esc(spot.radius_label)}</small></div>
-            <div class="hero-title"><h2 class="px" style="font-size:24px">이 동네는 아직이에요</h2></div>
-            <p class="menu-line">반경 안에 이 시간대 식당이 없어요</p>
-            <button type="button" id="explore-req">🔎 이 동네 발굴 요청하기</button>`;
-          $('explore-req').addEventListener('click', async ev => {
-            ev.target.disabled = true;
-            ev.target.textContent = '접수 중…';
-            await sb.from('explore_requests').insert({ user_id: me.id, lat: spot.lat, lng: spot.lng, radius_m: spot.radius_m, slot: currentSlotKey, note: spot.name });
-            ev.target.textContent = '접수됐어요 — 준비되면 채워둘게요';
-          });
+            <div class="locked-emo"><span class="emo lg">🔎</span></div>
+            <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
+            <p class="locked-sub">준비되면 ${SLOTS[currentSlotKey].label} 추천을 채워둘게요</p>`;
+          ensureExploreRequest(spot, currentSlotKey);
           renderVisited();
           return;
         }
@@ -787,6 +781,19 @@
       $('hero-wrap').classList.remove('hidden');
       renderHero(spot);
       renderVisited();
+    }
+
+    // 발굴 요청 자동 접수 (같은 설정으로는 한 번만)
+    const exploreReqSent = new Set();
+    async function ensureExploreRequest(spot, slotKey) {
+      const key = [spot.lat, spot.lng, spot.radius_m, slotKey].join(':');
+      if (exploreReqSent.has(key)) return;
+      exploreReqSent.add(key);
+      const { data } = await sb.from('explore_requests').select('id')
+        .eq('user_id', me.id).eq('lat', spot.lat).eq('lng', spot.lng)
+        .eq('radius_m', spot.radius_m).eq('slot', slotKey).limit(1);
+      if (data && data.length) return;   // 이미 접수됨
+      await sb.from('explore_requests').insert({ user_id: me.id, lat: spot.lat, lng: spot.lng, radius_m: spot.radius_m, slot: slotKey, note: spot.name });
     }
 
     function currentPlace() { return revealedPlaces[slotView]; }
