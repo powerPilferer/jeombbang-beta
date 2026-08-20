@@ -805,9 +805,15 @@
 
     // ── 추천 후보: 반경 + 슬롯, 안 가본 곳 우선 + 평점·거리, 날짜 시드 회전
     function rankedCandidates(spot, slotKey) {
-      const cands = places.filter(p =>
+      let cands = places.filter(p =>
         distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m &&
         (p.slots || []).includes(slotKey));
+      // 오늘 다른 끼니에서 이미 공개된 곳은 제외 (풀이 바닥나면 중복 허용)
+      const otherSlotIds = new Set(todayPicks.filter(k => k.slot !== slotKey).map(k => k.place_id));
+      if (otherSlotIds.size) {
+        const filtered = cands.filter(p => !otherSlotIds.has(p.id));
+        if (filtered.length) cands = filtered;
+      }
       if (!cands.length) return [];
       const sortFn = (a, b) => (avgOf(b.id) - avgOf(a.id)) ||
         (distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng));
