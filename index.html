@@ -143,6 +143,11 @@
       font-weight: 700; font-size: 15px; letter-spacing: -.02em; cursor: pointer; }
     #kakao-login svg { width: 18px; height: 18px; flex: none; }
     .login-foot { margin-top: 13px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+    .a2hs { margin-top: 18px; padding: 9px 15px; border-radius: 999px; background: rgba(236,225,203,.07);
+      font-size: 11px; color: #7d7d84; line-height: 1.6; }
+    .a2hs:empty { display: none; }
+    .a2hs b { color: var(--beige); font-weight: 700; }
+    .a2hs svg { width: 12px; height: 12px; vertical-align: -2px; display: inline-block; }
 
     /* ── 온보딩 위저드 (setup-mode: 풀스크린) ── */
     body.setup-mode { display: flex; flex-direction: column; min-height: 100dvh; }
@@ -511,6 +516,7 @@
         카카오로 시작하기
       </button>
       <div class="login-foot">이메일·연락처는 수집하지 않아요 — 카카오 닉네임만 받아요.</div>
+      <div class="a2hs" id="a2hs"></div>
     </section>
 
     <!-- 온보딩 위저드 -->
@@ -1747,6 +1753,15 @@
       clearTimeout(rszTimer);
       rszTimer = setTimeout(() => map.relayout(), 200);
     });
+    (() => {   // 홈 화면 추가 안내 (설치된 상태면 표시 안 함)
+      const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+      if (standalone) return;
+      const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const shareIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v8M5.5 3.5 8 1.5l2.5 2"/><path d="M4 6.5H3v8h10v-8h-1"/></svg>';
+      $('a2hs').innerHTML = ios
+        ? `공유 버튼 ${shareIcon} → <b>홈 화면에 추가</b>하면 앱처럼 쓸 수 있어요`
+        : `브라우저 메뉴 ⋮ → <b>홈 화면에 추가</b>하면 앱처럼 쓸 수 있어요`;
+    })();
     $('kakao-login').addEventListener('click', kakaoLogin);
     $('logout-btn').addEventListener('click', doLogout);
     $('fab').addEventListener('click', renderSettings);
