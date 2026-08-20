@@ -251,6 +251,8 @@
     .locked { text-align: center; padding: 44px 20px; }
     .locked h2 { margin: 18px 0 0; font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
     .locked-sub { margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
+    .push-cta { margin-top: 20px; padding: 11px 18px; border: 1.5px solid rgba(236,225,203,.45); border-radius: 999px;
+      background: none; color: var(--beige); font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; }
     .hero-wrap { position: relative; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
@@ -557,6 +559,7 @@
       <div class="locked-emo"><span class="emo lg">🍚</span></div>
       <h2 class="px" id="locked-title"></h2>
       <p class="locked-sub" id="locked-count"></p>
+      <button type="button" class="push-cta hidden" id="push-cta">🔔 공개되면 알려드릴게요</button>
     </section>
     <div class="hero-wrap hidden" id="hero-wrap">
       <div class="no-more" id="no-more"></div>
@@ -618,6 +621,46 @@
       if (t >= 630 && t < 900) return 'lunch';       // 10:30–15:00
       if (t >= 900 && t < 1260) return 'dinner';     // 15:00–21:00
       return 'latenight';                            // 21:00–05:00
+    }
+
+    // ── 웹푸시 (공개 시각 알림)
+    const VAPID_PUB = 'BOzC7njouYEqZfK2s9xrjzTWY_R5xzIAwWyWMIznyh3omG24h0Omibq1CWZuB5N34G4ukjftCEOYVfei73o5u3E';
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    function b64ToU8(s) {
+      const p = '='.repeat((4 - s.length % 4) % 4);
+      const b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/'));
+      return Uint8Array.from([...b].map(c => c.charCodeAt(0)));
+    }
+    async function getPushSub() {
+      try { const reg = await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); }
+      catch (_) { return null; }
+    }
+    async function enablePush() {
+      if (!pushSupported()) return { ok: false, msg: '이 브라우저는 알림을 지원하지 않아요.' };
+      if (isIOS && !isStandalone()) return { ok: false, msg: '아이폰은 공유 → 홈 화면에 추가한 앱에서 알림을 켤 수 있어요.' };
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return { ok: false, msg: '알림 권한이 꺼져 있어요 — 브라우저 설정에서 허용해주세요.' };
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUB) });
+      const j = sub.toJSON();
+      const { error } = await sb.from('push_subs').upsert(
+        { user_id: me.id, endpoint: sub.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
+      if (error) return { ok: false, msg: '알림 등록 실패: ' + error.message };
+      return { ok: true };
+    }
+    async function disablePush() {
+      const sub = await getPushSub();
+      if (sub) { await sb.from('push_subs').delete().eq('endpoint', sub.endpoint); await sub.unsubscribe(); }
+    }
+    async function updatePushCta() {
+      const btn = $('push-cta');
+      if (!pushSupported() || Notification.permission === 'denied') { btn.classList.add('hidden'); return; }
+      const sub = await getPushSub();
+      btn.classList.toggle('hidden', !!sub);
     }
 
     // ── 공휴일 (2026–2027, 대체공휴일 포함) → 주말 취급
@@ -821,6 +864,7 @@
         };
         tick();
         countdownTimer = setInterval(tick, 20000);
+        updatePushCta();
         renderVisited();
       }
 
@@ -1702,6 +1746,7 @@
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
+          <button type="button" class="etc-row" id="push-row">공개 알림 <b id="push-state">확인 중…</b></button>
           <button type="button" class="etc-row danger" id="settings-logout">로그아웃</button>
         </div>`;
       $('set-back').onclick = () => renderHome();
@@ -1723,6 +1768,20 @@
         $('nick-input').classList.remove('dup');
         $('nick-modal').classList.remove('hidden');
         setTimeout(() => $('nick-input').focus(), 60);
+      };
+      (async () => {
+        const st = $('push-state');
+        if (!pushSupported()) { st.textContent = '미지원'; return; }
+        st.textContent = (await getPushSub()) ? '켜짐' : '꺼짐';
+      })();
+      $('push-row').onclick = async () => {
+        const st = $('push-state');
+        const sub = await getPushSub();
+        if (sub) { await disablePush(); st.textContent = '꺼짐'; return; }
+        st.textContent = '연결 중…';
+        const r = await enablePush();
+        st.textContent = r.ok ? '켜짐' : '꺼짐';
+        if (!r.ok) alert(r.msg);
       };
       $('settings-logout').onclick = doLogout;
     }
@@ -1844,6 +1903,14 @@
     })();
     $('kakao-login').addEventListener('click', kakaoLogin);
     $('logout-btn').addEventListener('click', doLogout);
+    $('push-cta').addEventListener('click', async () => {
+      const btn = $('push-cta');
+      btn.disabled = true; btn.textContent = '연결 중…';
+      const r = await enablePush();
+      btn.disabled = false;
+      if (r.ok) { btn.textContent = '🔔 알림 켜짐 — 공개되면 알려드릴게요'; setTimeout(() => btn.classList.add('hidden'), 2000); }
+      else { btn.textContent = '🔔 공개되면 알려드릴게요'; alert(r.msg); }
+    });
     $('fab').addEventListener('click', renderSettings);
     boot();
   </script>
