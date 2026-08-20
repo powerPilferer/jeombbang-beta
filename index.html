@@ -1173,7 +1173,7 @@
         draft = [{ name: '', lat: null, lng: null, radius_m: null, radius_label: '', days: 'always', meal_times: [] }];
         editIdx = 0;
       }
-      wizSteps = (wizMode === 'first' ? ['nick'] : []).concat(['pin', 'name', 'rad', 'time']);
+      wizSteps = (wizMode === 'first' ? ['nick'] : []).concat(['name', 'pin', 'rad', 'time']);
       wizIdx = 0;
       geoTried = wizMode === 'edit';   // 수정이면 기존 핀 유지
       setMode('wizard');
