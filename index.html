@@ -113,7 +113,7 @@
     .map-note { position: absolute; z-index: 450; left: 12px; top: 12px; padding: 8px 12px; border-radius: 11px;
       background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
-    main { max-width: 430px; margin: 0 auto; padding: 16px 18px calc(env(safe-area-inset-bottom) + 96px); display: grid; gap: 14px; }
+    main { max-width: 430px; margin: 0 auto; padding: 16px 18px calc(env(safe-area-inset-bottom) + 96px); display: grid; gap: 14px; overflow-x: clip; }
 
     /* ── PC 홈: 좌측 콘텐츠 470px + 우측 전체 지도 ── */
     @media (min-width: 900px) {
@@ -247,7 +247,7 @@
     .locked { text-align: center; padding: 44px 20px; }
     .locked h2 { margin: 18px 0 0; font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
     .locked-sub { margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
-    .hero-wrap { position: relative; overflow: hidden; border-radius: 20px; }
+    .hero-wrap { position: relative; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
     .hero.animating { transition: transform .22s cubic-bezier(.3,.7,.4,1), opacity .22s; }
