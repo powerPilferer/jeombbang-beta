@@ -1501,6 +1501,9 @@
           $('wiz-add').disabled = !e.target.value;
           $('wiz-time-hint').style.display = e.target.value ? 'none' : '';
         });
+        $('wiz-time').addEventListener('click', e => {   // 입력창 아무 데나 눌러도 피커 열림
+          try { e.target.showPicker(); } catch (_) {}
+        });
         $('wiz-add').addEventListener('click', () => {
           const t = $('wiz-time').value;
           if (!t) return;
