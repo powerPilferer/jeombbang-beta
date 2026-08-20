@@ -90,19 +90,19 @@
     .login-foot { margin-top: 13px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
 
     /* ── 온보딩 위저드 (setup-mode: 풀스크린) ── */
-    body.setup-mode { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+    body.setup-mode { display: flex; flex-direction: column; min-height: 100dvh; }
     body.setup-mode .topbar, body.setup-mode .fab { display: none; }
     body.setup-mode main { order: 1; flex: 0 0 auto; display: block; width: 100%; max-width: 430px;
       margin: 0 auto; overflow: visible;
       padding: calc(env(safe-area-inset-top) + 26px) 26px 0; }
     body.setup-mode #map-wrap { order: 2; flex: 1 1 auto; width: 100%; max-width: 430px; margin: 20px auto 0;
-      height: auto; min-height: 0; border-radius: 20px; overflow: hidden; }
+      height: auto; min-height: 260px; border-radius: 20px; overflow: hidden; }
     body.setup-mode.no-map #map-wrap { display: none; }
     body.setup-mode.no-map main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
     body.setup-mode.no-map #wiz-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     #setup-foot { display: none; }
     body.setup-mode #setup-foot { order: 3; display: block; width: 100%; max-width: 430px;
-      margin: 0 auto; padding: 0 26px calc(env(safe-area-inset-bottom) + 26px); }
+      margin: 0 auto; padding: 16px 26px calc(env(safe-area-inset-bottom) + 26px); }
     /* 진행 라인 · 뒤로가기 */
     .wiz-prog { position: fixed; left: 0; right: 0; top: 0; height: 2px; background: rgba(255,255,255,.07); z-index: 950; }
     .wiz-prog i { display: block; height: 100%; background: var(--beige); width: 20%;
@@ -172,7 +172,7 @@
     .locked { text-align: center; padding: 44px 20px; }
     .locked h2 { margin: 18px 0 0; font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
     .locked-sub { margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
-    .hero-wrap { position: relative; }
+    .hero-wrap { position: relative; overflow: hidden; border-radius: 20px; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
     .hero.animating { transition: transform .22s cubic-bezier(.3,.7,.4,1), opacity .22s; }
