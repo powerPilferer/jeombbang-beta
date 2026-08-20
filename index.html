@@ -653,7 +653,7 @@
     // ── 지도
     const map = new kakao.maps.Map($('map'), { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 8 });
     let radiusCircle = null, myOv = null, pinOv = null;
-    const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.35, zIndex: 30 });
+    const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.62, zIndex: 30 });
     kakao.maps.event.addListener(map, 'click', () => popupOv.setMap(null));
     function applySpotToMap(spot) {
       if (radiusCircle) radiusCircle.setMap(null);
@@ -1160,7 +1160,6 @@
     let sx = 0, sy = 0, dx = 0, dragging = false, horiz = null, dragMoved = false;
     heroEl.addEventListener('pointerdown', e => {
       dragging = true; horiz = null; sx = e.clientX; sy = e.clientY; dx = 0; dragMoved = false;
-      heroEl.setPointerCapture(e.pointerId);
       heroEl.classList.add('dragging');
     });
     // 드래그로 시작한 제스처면 버튼 클릭으로 이어지지 않게
@@ -1175,7 +1174,10 @@
       if (!dragging) return;
       dx = e.clientX - sx;
       const dy = e.clientY - sy;
-      if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) horiz = Math.abs(dx) >= Math.abs(dy);
+      if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+        horiz = Math.abs(dx) >= Math.abs(dy);
+        if (horiz) try { heroEl.setPointerCapture(e.pointerId); } catch (_) {}   // 가로 확정 후에만 캡처 — 클릭 보존
+      }
       if (Math.abs(dx) > 10) dragMoved = true;
       if (horiz) {
         const w = heroEl.offsetWidth, cap = w / 3, fwd = dx < 0;
