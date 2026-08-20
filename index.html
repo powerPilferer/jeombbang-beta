@@ -89,6 +89,22 @@
       font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
     main { max-width: 430px; margin: 0 auto; padding: 16px 18px calc(env(safe-area-inset-bottom) + 96px); display: grid; gap: 14px; }
 
+    /* ── PC 홈: 좌측 콘텐츠 470px + 우측 전체 지도 ── */
+    @media (min-width: 900px) {
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) {
+        display: grid; grid-template-columns: 470px minmax(0, 1fr); grid-template-rows: auto 1fr; height: 100vh;
+      }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) .topbar { grid-column: 1; grid-row: 1; }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) #map-wrap {
+        grid-column: 2; grid-row: 1 / 3; width: auto; height: 100vh; min-height: 0;
+        margin: 0; border-radius: 0; }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) main {
+        grid-column: 1; grid-row: 2; overflow-y: auto; width: 100%; max-width: none;
+        padding: 16px 38px calc(env(safe-area-inset-bottom) + 96px); }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) .map-size { display: none; }
+      body:not(.login-mode):not(.setup-mode):not(.settings-mode) .fab { left: 235px; }
+    }
+
     /* ── 카드 공통 ── */
     .card { padding: 20px; border-radius: 20px; background: var(--card); }
     .kicker { color: var(--muted); font-size: 11.5px; font-weight: 700; letter-spacing: .02em; line-height: 1.6; }
@@ -1698,6 +1714,11 @@
     $('map-size-btn').addEventListener('click', () => {
       $('map-wrap').classList.toggle('tall');
       setTimeout(relayoutKeep, 330);   // 높이 전환이 끝난 뒤 지도 재계산
+    });
+    let rszTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(rszTimer);
+      rszTimer = setTimeout(() => map.relayout(), 200);
     });
     $('kakao-login').addEventListener('click', kakaoLogin);
     $('logout-btn').addEventListener('click', doLogout);
