@@ -90,9 +90,13 @@
     .modal-btns .m-cancel { background: var(--chip); color: var(--ink); }
     .modal-btns .m-save { background: var(--beige); color: var(--beige-ink); }
     .map-search { position: absolute; left: 12px; top: 12px; right: 64px; z-index: 470; }
-    .map-search input { width: 100%; border: 0; border-radius: 999px; padding: 11px 17px;
+    .search-box { position: relative; }
+    .map-search input { width: 100%; border: 0; border-radius: 999px; padding: 11px 40px 11px 17px;
       background: rgba(26,26,28,.94); color: var(--ink); font-size: 16px; font-weight: 600;
       box-shadow: 0 6px 16px rgba(0,0,0,.3); }
+    .search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--chip);
+      color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
     .map-search input:focus { outline: 1.5px solid rgba(236,225,203,.5); }
     .map-search input::placeholder { color: #7d7d84; }
     .search-results { margin-top: 8px; display: grid; gap: 4px; max-height: 210px; overflow-y: auto; }
@@ -449,7 +453,10 @@
     <div class="map-note" id="map-note">점빵이 베타</div>
     <div class="center-pin hidden" id="center-pin"><span class="emo">🍚</span></div>
     <div class="map-search hidden" id="map-search">
-      <input id="search-input" placeholder="장소나 주소로 검색 (예: 마석역)" autocomplete="off">
+      <div class="search-box">
+        <input id="search-input" placeholder="장소나 주소로 검색 (예: 마석역)" autocomplete="off">
+        <button type="button" class="search-clear hidden" id="search-clear" aria-label="지우기">✕</button>
+      </div>
       <div class="search-results" id="search-results"></div>
     </div>
     <button type="button" class="loc-btn hidden" id="loc-btn" aria-label="내 위치로 이동">
@@ -1302,7 +1309,7 @@
       $('center-pin').classList.toggle('hidden', st !== 'pin');
       $('loc-btn').classList.toggle('hidden', st !== 'pin');
       $('map-search').classList.toggle('hidden', st !== 'pin');
-      if (st !== 'pin') { $('search-results').innerHTML = ''; $('search-input').value = ''; }
+      if (st !== 'pin') resetSearch();
       $('map-cap').classList.toggle('hidden', !needMap);
 
       const backHidden = wizIdx === 0 && (wizMode === 'first' || wizMode === 'setup');
@@ -1514,20 +1521,29 @@
           map.setLevel(4);
           if (draft) { draft[editIdx].lat = +r.y; draft[editIdx].lng = +r.x; }
           $('search-input').value = r.place_name;
+          $('search-clear').classList.remove('hidden');
           $('search-input').blur();
           box.innerHTML = '';
           setTimeout(() => { mapBusy = false; updatePinCaption(); }, 250);
         });
       });
     }
+    function resetSearch() {
+      $('search-input').value = '';
+      $('search-results').innerHTML = '';
+      $('search-clear').classList.add('hidden');
+    }
     $('search-input').addEventListener('input', e => {
+      $('search-clear').classList.toggle('hidden', !e.target.value);
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => runPlaceSearch(e.target.value), 350);
     });
+    $('search-clear').addEventListener('click', () => { resetSearch(); $('search-input').focus(); });
     $('search-input').addEventListener('keydown', e => {
       if (e.key === 'Enter') { clearTimeout(searchTimer); runPlaceSearch(e.target.value); }
     });
     $('loc-btn').addEventListener('click', () => {
+      resetSearch();
       if (!navigator.geolocation || stepName() !== 'pin' || !draft) return;
       const btn = $('loc-btn');
       btn.classList.add('busy');
