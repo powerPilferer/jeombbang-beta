@@ -222,6 +222,9 @@
     .flabel { margin-top: 30px; color: var(--muted); font-size: 11.5px; font-weight: 800; letter-spacing: .07em; }
     /* 시각 입력 */
     .time-row { display: flex; width: 100%; gap: 10px; align-items: stretch; margin-top: 10px; }
+    .time-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+    .time-hint { position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+      color: #5c5c62; font-size: 13px; font-weight: 600; pointer-events: none; }
     .time-row input[type=time] { flex: 1; min-width: 0; border: 0; border-radius: 14px; background: var(--card);
       color: var(--ink); padding: 16px 18px; font-size: 22px; font-weight: 700; font-family: inherit; letter-spacing: -.02em; }
     .time-row input[type=time]:focus { outline: 2px solid rgba(236,225,203,.45); }
@@ -1436,7 +1439,9 @@
           <p class="wiz-sub">시각을 정하면 끼니는 알아서 구분해요.</p>
           <div class="wiz-body">
             <div class="flabel" style="margin-top:0">추천받을 시각</div>
-            <div class="time-row"><input type="time" id="wiz-time"><button type="button" class="time-add" id="wiz-add" disabled>추가</button></div>
+            <div class="time-row">
+              <span class="time-wrap"><input type="time" id="wiz-time"><span class="time-hint" id="wiz-time-hint">눌러서 선택 · 예: 11:30</span></span>
+              <button type="button" class="time-add" id="wiz-add" disabled>추가</button></div>
             <div class="mts" id="wiz-mts">
               ${mts.map((m, i) => `<span class="mt"><span class="emo">${SLOTS[m.slot].emoji}</span> <b>${m.time}</b> ${SLOTS[m.slot].label}
                 <button type="button" data-i="${i}">✕</button></span>`).join('')}
@@ -1491,7 +1496,10 @@
           drawSetupCircle();
         }));
       } else if (st === 'time') {
-        $('wiz-time').addEventListener('input', e => { $('wiz-add').disabled = !e.target.value; });
+        $('wiz-time').addEventListener('input', e => {
+          $('wiz-add').disabled = !e.target.value;
+          $('wiz-time-hint').style.display = e.target.value ? 'none' : '';
+        });
         $('wiz-add').addEventListener('click', () => {
           const t = $('wiz-time').value;
           if (!t) return;
