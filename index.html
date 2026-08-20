@@ -810,6 +810,7 @@
       renderDetail(p, spot);
       showPin(p);
       openPopup(p, spot);
+      if (map.getLevel() > 5) map.setLevel(5);
       map.setCenter(new kakao.maps.LatLng(p.lat, p.lng));
     }
 
@@ -1472,7 +1473,7 @@
         const chip = spots.length === 1 ? '매일' : (i === 0 ? '평일' : '주말 · 공휴일');
         return `<button type="button" class="slot-card" data-i="${i}">
           <span class="tx"><span class="sl-chip">${chip}</span>
-            <span class="nm">${esc(s.name)}</span>
+            <span class="nm"><span class="emo" style="font-size:16px">${i === 0 ? '🏢' : '🏠'}</span> ${esc(s.name)}</span>
             <span class="mt2">${esc(s.radius_label)}${times ? ' · ' + times : ''}</span></span>
           <span class="re">다시 설정 ›</span>
         </button>`;
@@ -1544,7 +1545,7 @@
         $('settings-view').classList.remove('hidden');
       } else if (mode === 'home') {
         $('fab').classList.remove('hidden');
-        relayoutKeep();
+        map.relayout();   // 중심은 이어지는 renderHome/renderHero가 명시적으로 잡음
       }
     }
 
