@@ -1543,27 +1543,27 @@
       }
       closeWizard();
       await Promise.all([loadSpots(), loadPicks()]);
-      // 설정이 바뀌었으니 새 반경·시각과 안 맞는 오늘 픽은 무효화 (남은 슬롯 재산출)
+      // 설정이 바뀌었으니: ① 새 반경·시각과 안 맞는 픽 + ② 이미 지난 끼니의 픽은 전부 무효화
+      //    지난 끼니는 소급 공개하지 않고 다음 끼니 잠김으로 (재설정 = 오늘 지난 끼니 리셋)
       const sp = activeSpot();
       if (sp) {
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const passed = new Set((sp.meal_times || []).filter(m => {
+          const [h, mi] = m.time.split(':').map(Number);
+          return h * 60 + mi <= nowMin;
+        }).map(m => m.slot));
         const bad = todayPicks.filter(k => {
           const p = places.find(x => x.id === k.place_id);
           return !p || distM(sp.lat, sp.lng, p.lat, p.lng) > sp.radius_m
-            || !(sp.meal_times || []).some(m => m.slot === k.slot);
+            || !(sp.meal_times || []).some(m => m.slot === k.slot)
+            || passed.has(k.slot);
         });
         if (bad.length) {
           await sb.from('picks').delete().in('id', bad.map(b => b.id));
           todayPicks = todayPicks.filter(k => !bad.includes(k));
         }
-        // 설정 저장 시점에 이미 지난 끼니(픽 없음)는 오늘 소급 공개하지 않음
-        const now = new Date();
-        const nowMin = now.getHours() * 60 + now.getMinutes();
-        (sp.meal_times || []).forEach(m => {
-          const [h, mi] = m.time.split(':').map(Number);
-          if (h * 60 + mi <= nowMin && !todayPicks.some(k => k.slot === m.slot)) {
-            localStorage.setItem('mfj-block:' + todayStr() + ':' + m.slot, '1');
-          }
-        });
+        passed.forEach(s => localStorage.setItem('mfj-block:' + todayStr() + ':' + s, '1'));
       }
       // 새 동네 발굴 연출 — 2분간 "발굴 중" 화면 후 잠김/공개로 전환
       if (sp && places.some(p => distM(sp.lat, sp.lng, p.lat, p.lng) <= sp.radius_m)) {
