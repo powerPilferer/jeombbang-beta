@@ -654,6 +654,7 @@
     let todayPicks = [];       // 오늘 내 picks (shown)
     let currentSlotKey = null;
     let countdownTimer = null;
+    let scoutTimer = null;
     let cancelledGhosts = [];  // 이번 세션에 별점 취소한 곳 (화면 유지용)
     // 슬롯 열람 상태
     let slotView = 0;          // 공개된 곳 중 지금 보는 인덱스
@@ -715,6 +716,19 @@
       if (!places.some(p => distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m)) {
         const firstSlot = (spot.meal_times || [])[0];
         renderExploring(spot, firstSlot ? firstSlot.slot : null);
+        return;
+      }
+
+      // 설정 직후 발굴 연출 — 이미 발굴된 동네여도 처음엔 점빵이가 찾는 모습 (2분)
+      const scoutUntil = +localStorage.getItem('mfj-scout') || 0;
+      if (scoutUntil > Date.now()) {
+        const nextMt = plan.next || plan.current || plan.first;
+        const when = plan.next ? plan.next.time + '에' : plan.current ? '곧' : (plan.first ? '내일 ' + plan.first.time + '에' : '');
+        renderExploring(spot, nextMt ? nextMt.slot : null, `다 찾으면 ${when} 정해드릴게요`);
+        clearTimeout(scoutTimer);
+        scoutTimer = setTimeout(() => {
+          if (!document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode')) renderHome();
+        }, scoutUntil - Date.now() + 300);
         return;
       }
 
@@ -798,7 +812,7 @@
     }
 
     // 발굴중 안내 (식당 없는 동네 — 공개 시각과 무관)
-    function renderExploring(spot, slotKey) {
+    function renderExploring(spot, slotKey, subText) {
       ['hero-wrap', 'detail', 'locked'].forEach(id => $(id).classList.add('hidden'));
       $('next-tease').classList.add('hidden');
       showPin(null);
@@ -807,8 +821,8 @@
       np.innerHTML = `
         <div class="locked-emo"><span class="emo lg seek">🔎</span></div>
         <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
-        <p class="locked-sub">준비되면 ${slotKey ? SLOTS[slotKey].label + ' ' : ''}추천을 채워둘게요</p>`;
-      ensureExploreRequest(spot, slotKey || 'dinner');
+        <p class="locked-sub">${subText || `준비되면 ${slotKey ? SLOTS[slotKey].label + ' ' : ''}추천을 채워둘게요`}</p>`;
+      if (!subText) ensureExploreRequest(spot, slotKey || 'dinner');   // 연출이 아닐 때만 실제 요청 접수
       renderVisited();
     }
 
@@ -1507,6 +1521,10 @@
             localStorage.setItem('mfj-block:' + todayStr() + ':' + m.slot, '1');
           }
         });
+      }
+      // 새 동네 발굴 연출 — 2분간 "발굴 중" 화면 후 잠김/공개로 전환
+      if (sp && places.some(p => distM(sp.lat, sp.lng, p.lat, p.lng) <= sp.radius_m)) {
+        localStorage.setItem('mfj-scout', String(Date.now() + 120000));
       }
       slotView = 0;
       renderHome();
