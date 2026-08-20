@@ -186,6 +186,9 @@
     .wiz-prog { position: fixed; left: 0; right: 0; top: 0; height: 2px; background: rgba(255,255,255,.07); z-index: 950; }
     .wiz-prog i { display: block; height: 100%; background: var(--beige); width: 20%;
       transition: width .35s cubic-bezier(.4, 0, .2, 1); }
+    .wiz-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 22px; }
+    .wiz-head .wiz-back { margin: 0 0 0 -2px; }
+    .wiz-head .wiz-close { margin: 0 -2px 0 0; padding: 8px 0 8px 8px; }
     .wiz-back { border: 0; background: none; cursor: pointer; padding: 8px 8px 8px 0; margin: 0 0 22px -2px;
       color: var(--muted); transition: color .15s; }
     .wiz-back:hover { color: var(--beige); }
@@ -1313,6 +1316,12 @@
         <rect x="1" y="6" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/>
         <rect x="3" y="4" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/>
         <rect x="4" y="9" width="1" height="1"/><rect x="2" y="6" width="10" height="1"/></svg>`;
+    const CLOSE_SVG = `<svg viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+        <rect x="2" y="2" width="2" height="2"/><rect x="4" y="4" width="2" height="2"/>
+        <rect x="7" y="7" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/>
+        <rect x="9" y="2" width="2" height="2"/><rect x="7" y="4" width="2" height="2"/>
+        <rect x="4" y="7" width="2" height="2"/><rect x="2" y="9" width="2" height="2"/>
+        <rect x="5.5" y="5.5" width="2" height="2"/></svg>`;
 
     let draft = null, editIdx = 0, wizSteps = [], wizIdx = 0, wizMode = 'first';
     let setupCircle = null, geocoder = null, pinMoveTimer = null, mapBusy = false, geoTried = false;
@@ -1385,7 +1394,11 @@
       $('map-cap').classList.toggle('hidden', !needMap);
 
       const backHidden = wizIdx === 0 && (wizMode === 'first' || wizMode === 'setup');
-      const head = `<button type="button" class="wiz-back ${backHidden ? 'hide' : ''}" id="wiz-back" aria-label="뒤로">${BACK_SVG}</button>`;
+      const canClose = wizMode === 'edit' || wizMode === 'add';
+      const head = `<div class="wiz-head">
+        <button type="button" class="wiz-back ${backHidden ? 'hide' : ''}" id="wiz-back" aria-label="뒤로">${BACK_SVG}</button>
+        ${canClose ? `<button type="button" class="wiz-back wiz-close" id="wiz-close" aria-label="닫고 홈으로">${CLOSE_SVG}</button>` : ''}
+      </div>`;
       let html = '';
 
       if (st === 'nick') {
@@ -1448,6 +1461,8 @@
       cta.disabled = false;
       cta.onclick = () => wizNext();
       $('wiz-back').onclick = () => wizBack();
+      const wc = $('wiz-close');
+      if (wc) wc.onclick = () => { closeWizard(); renderHome(); };
 
       wireWizardStep();
       relayoutKeep();
