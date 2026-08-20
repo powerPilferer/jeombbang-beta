@@ -1450,6 +1450,19 @@
       }
       closeWizard();
       await Promise.all([loadSpots(), loadPicks()]);
+      // 설정이 바뀌었으니 새 반경·시각과 안 맞는 오늘 픽은 무효화 (남은 슬롯 재산출)
+      const sp = activeSpot();
+      if (sp) {
+        const bad = todayPicks.filter(k => {
+          const p = places.find(x => x.id === k.place_id);
+          return !p || distM(sp.lat, sp.lng, p.lat, p.lng) > sp.radius_m
+            || !(sp.meal_times || []).some(m => m.slot === k.slot);
+        });
+        if (bad.length) {
+          await sb.from('picks').delete().in('id', bad.map(b => b.id));
+          todayPicks = todayPicks.filter(k => !bad.includes(k));
+        }
+      }
       slotView = 0;
       renderHome();
     }
@@ -1574,7 +1587,7 @@
       nickById = Object.fromEntries((r2.data || []).map(p => [p.id, p.nickname]));
     }
     async function loadPicks() {
-      const { data } = await sb.from('picks').select('slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at');
+      const { data } = await sb.from('picks').select('id,slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at');
       todayPicks = data || [];
     }
 
