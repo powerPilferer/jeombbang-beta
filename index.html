@@ -804,7 +804,17 @@
       $('locked').classList.add('hidden');
       currentSlotKey = plan.current.slot;
       const ranked = rankedCandidates(spot, currentSlotKey);
-      const shownRows = todayPicks.filter(k => k.slot === currentSlotKey);
+      // 오늘 픽 중 현재 설정과 안 맞는 것(다른 탭·기기의 낡은 상태로 생성)은 무효화
+      const shownRows = [], badRows = [];
+      todayPicks.filter(k => k.slot === currentSlotKey).forEach(k => {
+        const p = places.find(x => x.id === k.place_id);
+        if (p && distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m && (p.slots || []).includes(currentSlotKey)) shownRows.push(k);
+        else badRows.push(k);
+      });
+      if (badRows.length) {
+        sb.from('picks').delete().in('id', badRows.map(b => b.id)).then(() => {});
+        todayPicks = todayPicks.filter(k => !badRows.includes(k));
+      }
       revealedPlaces = shownRows.map(k => places.find(p => p.id === k.place_id)).filter(Boolean);
       if (!revealedPlaces.length) {
         if (!ranked.length) {
@@ -1714,6 +1724,12 @@
     $('map-size-btn').addEventListener('click', () => {
       $('map-wrap').classList.toggle('tall');
       setTimeout(relayoutKeep, 330);   // 높이 전환이 끝난 뒤 지도 재계산
+    });
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState !== 'visible' || !me) return;
+      if (document.body.classList.contains('setup-mode') || document.body.classList.contains('settings-mode') || document.body.classList.contains('login-mode')) return;
+      await Promise.all([loadSpots(), loadPicks(), loadReviews()]);
+      renderHome();
     });
     let rszTimer = null;
     window.addEventListener('resize', () => {
