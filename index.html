@@ -56,6 +56,23 @@
     .ic-btn svg { width: 18px; height: 18px; display: block; }
     #map-wrap { position: relative; height: 34vh; min-height: 230px; width: min(394px, calc(100% - 36px));
       margin: 12px auto 0; border-radius: 20px; overflow: hidden; transform: translateZ(0); isolation: isolate; }
+    #map-wrap { transition: height .3s ease; }
+    #map-wrap.tall { height: 60vh; }
+    .map-size { position: absolute; right: 12px; bottom: 12px; z-index: 470; width: 40px; height: 40px; border: 0;
+      border-radius: 50%; background: rgba(26,26,28,.92); color: var(--beige); display: grid; place-items: center;
+      cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+    .map-size svg { width: 18px; height: 18px; display: block; transition: transform .25s; }
+    #map-wrap.tall .map-size svg { transform: rotate(180deg); }
+    .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.62); display: flex;
+      align-items: center; justify-content: center; padding: 26px; }
+    .modal-card { width: 100%; max-width: 340px; background: var(--card); border-radius: 20px; padding: 24px; }
+    .modal-card h3 { margin: 0 0 18px; font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+    .modal-card .uline { font-size: 22px; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 22px; }
+    .modal-btns button { flex: 1; padding: 14px; border: 0; border-radius: 999px; font-weight: 800; font-size: 14px;
+      cursor: pointer; font-family: inherit; }
+    .modal-btns .m-cancel { background: var(--chip); color: var(--ink); }
+    .modal-btns .m-save { background: var(--beige); color: var(--beige-ink); }
     .loc-btn { position: absolute; right: 12px; top: 12px; z-index: 470; width: 44px; height: 44px; border: 0;
       border-radius: 50%; background: rgba(26,26,28,.92); color: var(--beige); display: grid; place-items: center;
       cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
@@ -306,11 +323,6 @@
       color: var(--muted); font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; border-top: 1px solid var(--line); text-align: left; }
     .etc-row b { color: var(--ink); font-weight: 700; }
     .etc-row.danger { color: #e8756a; }
-    .nick-edit { display: flex; gap: 10px; align-items: center; padding: 10px 4px 14px; border-top: 1px solid var(--line); }
-    .nick-edit input { flex: 1; min-width: 0; border: 0; border-bottom: 1.5px solid var(--uline); background: none; color: var(--ink);
-      padding: 4px 2px 8px; font-size: 18px; font-weight: 700; font-family: inherit; }
-    .nick-edit input:focus { outline: none; }
-    .nick-edit button { flex: none; border: 0; border-radius: 999px; padding: 9px 16px; background: var(--beige); color: var(--beige-ink); font-weight: 800; font-size: 12.5px; cursor: pointer; font-family: inherit; }
 
     /* ── 지도 말풍선 ── */
     .kpopup { position: relative; width: 176px; padding: 11px 13px 10px; background: #fff; border-radius: 13px;
@@ -395,6 +407,9 @@
       </svg>
     </button>
     <div class="map-cap hidden" id="map-cap"></div>
+    <button type="button" class="map-size hidden" id="map-size-btn" aria-label="지도 크게 보기">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l5 5 5-5"/></svg>
+    </button>
     <div id="map"></div>
   </div>
 
@@ -496,6 +511,17 @@
   <div id="setup-foot">
     <div id="wiz-extra"></div>
     <button type="button" class="wiz-cta" id="wiz-cta"></button>
+  </div>
+  <div class="modal hidden" id="nick-modal">
+    <div class="modal-card">
+      <h3>닉네임 변경</h3>
+      <input class="uline" id="nick-input" maxlength="12" placeholder="닉네임">
+      <p class="dup-msg" id="nick-dup">이미 쓰고 있는 닉네임이에요</p>
+      <div class="modal-btns">
+        <button type="button" class="m-cancel" id="nick-cancel">취소</button>
+        <button type="button" class="m-save" id="nick-save">저장</button>
+      </div>
+    </div>
   </div>
   <button type="button" class="fab hidden" id="fab" aria-label="내 동네 설정"><span style="font-size:17px;line-height:1">📍</span> 내 동네</button>
 
@@ -1469,11 +1495,6 @@
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
-          <div class="nick-edit hidden" id="nick-edit">
-            <input id="nick-input" maxlength="12" value="${esc(me.nickname || '')}">
-            <button type="button" id="nick-save">저장</button>
-          </div>
-          <p class="dup-msg" id="set-dup"></p>
           <button type="button" class="etc-row danger" id="settings-logout">로그아웃</button>
         </div>`;
       $('set-back').onclick = () => renderHome();
@@ -1490,14 +1511,11 @@
         renderSettings();
       };
       $('nick-row').onclick = () => {
-        $('nick-edit').classList.toggle('hidden');
-        if (!$('nick-edit').classList.contains('hidden')) $('nick-input').focus();
-      };
-      $('nick-save').onclick = async () => {
-        const n = $('nick-input').value.trim().slice(0, 12);
-        if (!n || n === me.nickname) { $('nick-edit').classList.add('hidden'); return; }
-        const ok = await saveNickname(n, msg => { const d = $('set-dup'); d.textContent = msg; d.classList.add('on'); });
-        if (ok) renderSettings();
+        $('nick-input').value = me.nickname || '';
+        $('nick-dup').classList.remove('on');
+        $('nick-input').classList.remove('dup');
+        $('nick-modal').classList.remove('hidden');
+        setTimeout(() => $('nick-input').focus(), 60);
       };
       $('settings-logout').onclick = doLogout;
     }
@@ -1512,6 +1530,8 @@
       $('settings-view').classList.add('hidden');
       HOME_IDS.forEach(id => $(id).classList.add('hidden'));
       $('fab').classList.add('hidden');
+      $('map-size-btn').classList.toggle('hidden', mode !== 'home');
+      $('nick-modal').classList.add('hidden');
       if (mode === 'login') {
         document.body.classList.add('login-mode');
         $('login-view').classList.remove('hidden');
@@ -1577,6 +1597,21 @@
       else if (!spots.length) openWizard({ mode: 'setup' });
       else renderHome();
     }
+    $('nick-cancel').addEventListener('click', () => $('nick-modal').classList.add('hidden'));
+    $('nick-input').addEventListener('input', () => { $('nick-input').classList.remove('dup'); $('nick-dup').classList.remove('on'); });
+    $('nick-save').addEventListener('click', async () => {
+      const n = $('nick-input').value.trim().slice(0, 12);
+      if (!n || n === me.nickname) { $('nick-modal').classList.add('hidden'); return; }
+      const ok = await saveNickname(n, msg => { $('nick-dup').textContent = msg; $('nick-dup').classList.add('on'); $('nick-input').classList.add('dup'); });
+      if (ok) {
+        $('nick-modal').classList.add('hidden');
+        if (document.body.classList.contains('settings-mode')) renderSettings();
+      }
+    });
+    $('map-size-btn').addEventListener('click', () => {
+      $('map-wrap').classList.toggle('tall');
+      setTimeout(relayoutKeep, 330);   // 높이 전환이 끝난 뒤 지도 재계산
+    });
     $('kakao-login').addEventListener('click', kakaoLogin);
     $('logout-btn').addEventListener('click', doLogout);
     $('fab').addEventListener('click', renderSettings);
