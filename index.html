@@ -37,6 +37,9 @@
     .emo { font-family: "Mona12 Color Emoji", "Mona12 Emoji", sans-serif; -webkit-font-smoothing: none;
       font-smooth: never; font-size: 12px; line-height: 1; vertical-align: -1px; display: inline-block; }
     .emo.lg { font-size: 48px; }
+    .emo.seek { animation: seek 2.6s steps(1, end) infinite; }
+    @keyframes seek { 0%, 100% { transform: translate(-7px, 1px); } 25% { transform: translate(0, -4px); }
+      50% { transform: translate(7px, 1px); } 75% { transform: translate(0, 3px); } }
     * { box-sizing: border-box; }
     html, body { margin: 0; }
     body, body * { touch-action: manipulation; }   /* 더블탭 확대 방지 (핀치 확대는 유지) */
@@ -50,7 +53,7 @@
       backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); }
     .topbar-in { display: flex; align-items: center; gap: 9px; max-width: 394px; margin: 0 auto; }
     .topbar .brand { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
-    .topbar .jb-char { image-rendering: pixelated; animation: bob 1.4s steps(1, end) infinite; }
+    .topbar .jb-char { image-rendering: pixelated; }
     .who { color: var(--muted); font-size: 12.5px; font-weight: 600; }
     .ic-btn { border: 0; background: var(--card); border-radius: 11px; padding: 8px 9px; cursor: pointer; color: var(--ink); transition: color .15s; display: grid; place-items: center; }
     .ic-btn:hover { color: var(--beige); }
@@ -411,9 +414,9 @@
     <div class="map-cap hidden" id="map-cap"></div>
     <button type="button" class="map-size hidden" id="map-size-btn" aria-label="지도 크게 보기">
       <svg class="ic-grow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 3H3v5M12 3h5v5M8 17H3v-5M12 17h5v-5"/></svg>
+        <path d="M8 3H3v5M3 3l5.5 5.5M12 17h5v-5M17 17l-5.5-5.5"/></svg>
       <svg class="ic-shrink" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 8h5V3M17 8h-5V3M3 12h5v5M17 12h-5v5"/></svg>
+        <path d="M8 8V3M8 8H3M8.5 8.5 3 3M12 12v5M12 12h5M11.5 11.5 17 17"/></svg>
     </button>
     <div id="map"></div>
   </div>
@@ -774,7 +777,7 @@
           const np = $('no-pick');
           np.className = 'card locked';
           np.innerHTML = `
-            <div class="locked-emo"><span class="emo lg">🔎</span></div>
+            <div class="locked-emo"><span class="emo lg seek">🔎</span></div>
             <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
             <p class="locked-sub">준비되면 ${SLOTS[currentSlotKey].label} 추천을 채워둘게요</p>`;
           ensureExploreRequest(spot, currentSlotKey);
