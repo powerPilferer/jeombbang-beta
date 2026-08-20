@@ -1131,18 +1131,26 @@
         }));
       }, 200);
     }
-    let sx = 0, sy = 0, dx = 0, dragging = false, horiz = null;
+    let sx = 0, sy = 0, dx = 0, dragging = false, horiz = null, dragMoved = false;
     heroEl.addEventListener('pointerdown', e => {
-      if (e.target.closest('button')) return;
-      dragging = true; horiz = null; sx = e.clientX; sy = e.clientY; dx = 0;
+      dragging = true; horiz = null; sx = e.clientX; sy = e.clientY; dx = 0; dragMoved = false;
       heroEl.setPointerCapture(e.pointerId);
       heroEl.classList.add('dragging');
     });
+    // 드래그로 시작한 제스처면 버튼 클릭으로 이어지지 않게
+    heroEl.addEventListener('click', e => {
+      if (dragMoved) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+    // 가로 의도가 확정되면 브라우저 세로 스크롤이 가로채지 못하게
+    heroEl.addEventListener('touchmove', e => {
+      if (horiz) e.preventDefault();
+    }, { passive: false });
     heroEl.addEventListener('pointermove', e => {
       if (!dragging) return;
       dx = e.clientX - sx;
       const dy = e.clientY - sy;
-      if (horiz === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) horiz = Math.abs(dx) > Math.abs(dy);
+      if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) horiz = Math.abs(dx) >= Math.abs(dy);
+      if (Math.abs(dx) > 10) dragMoved = true;
       if (horiz) {
         const w = heroEl.offsetWidth, cap = w / 3, fwd = dx < 0;
         const canGo = fwd ? hasNextView() : slotView > 0;
