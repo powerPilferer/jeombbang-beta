@@ -1661,6 +1661,11 @@
       if (wizIdx < wizSteps.length - 1) { wizIdx++; renderWizard(); return; }
       // 마지막 스텝 (시각) → 저장
       if (!s.meal_times.length) { alert('추천받을 시각을 최소 1개 정해주세요.'); return; }
+      // 첫 온보딩 완료 순간에 알림 권한을 자연스럽게 요청 (거절해도 홈의 알림 켜기 버튼으로 재시도 가능)
+      if ((wizMode === 'first' || wizMode === 'setup') && pushSupported()
+          && Notification.permission === 'default' && !(isIOS && !isStandalone())) {
+        try { await enablePush(); } catch (_) {}
+      }
       draft.forEach((d, i) => { if (!d.name.trim()) d.name = '장소' + (i + 1); });
       if (draft.some(d => !d.lat)) { alert('위치가 설정되지 않은 장소가 있어요.'); return; }
       // 2슬롯 자동 배정: 1곳이면 매일, 2곳이면 평일/주말
