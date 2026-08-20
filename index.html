@@ -89,6 +89,17 @@
       cursor: pointer; font-family: inherit; }
     .modal-btns .m-cancel { background: var(--chip); color: var(--ink); }
     .modal-btns .m-save { background: var(--beige); color: var(--beige-ink); }
+    .map-search { position: absolute; left: 12px; top: 12px; right: 64px; z-index: 470; }
+    .map-search input { width: 100%; border: 0; border-radius: 999px; padding: 12px 17px;
+      background: rgba(26,26,28,.94); color: var(--ink); font-size: 13.5px; font-weight: 600;
+      box-shadow: 0 6px 16px rgba(0,0,0,.3); }
+    .map-search input:focus { outline: 1.5px solid rgba(236,225,203,.5); }
+    .map-search input::placeholder { color: #7d7d84; }
+    .search-results { margin-top: 8px; display: grid; gap: 4px; max-height: 210px; overflow-y: auto; }
+    .search-results button { border: 0; border-radius: 13px; padding: 11px 14px; background: rgba(26,26,28,.96);
+      color: var(--ink); text-align: left; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+    .search-results .rn { display: block; font-size: 13px; font-weight: 700; }
+    .search-results .ra { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
     .loc-btn { position: absolute; right: 12px; top: 12px; z-index: 470; width: 44px; height: 44px; border: 0;
       border-radius: 50%; background: rgba(26,26,28,.92); color: var(--beige); display: grid; place-items: center;
       cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
@@ -437,6 +448,10 @@
   <div id="map-wrap">
     <div class="map-note" id="map-note">점빵이 베타</div>
     <div class="center-pin hidden" id="center-pin"><span class="emo">🍚</span></div>
+    <div class="map-search hidden" id="map-search">
+      <input id="search-input" placeholder="장소나 주소로 검색 (예: 마석역)" autocomplete="off">
+      <div class="search-results" id="search-results"></div>
+    </div>
     <button type="button" class="loc-btn hidden" id="loc-btn" aria-label="내 위치로 이동">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
         <circle cx="10" cy="10" r="5.2"/><circle cx="10" cy="10" r="1.4" fill="currentColor" stroke="none"/>
@@ -1270,6 +1285,8 @@
       $('wiz-prog').classList.add('hidden');
       $('center-pin').classList.add('hidden');
       $('loc-btn').classList.add('hidden');
+      $('map-search').classList.add('hidden');
+      $('search-results').innerHTML = '';
       $('map-cap').classList.add('hidden');
       $('map-note').classList.remove('hidden');
       if (setupCircle) { setupCircle.setMap(null); setupCircle = null; }
@@ -1284,6 +1301,8 @@
       $('wiz-bar').style.width = ((wizIdx + 1) / wizSteps.length * 100) + '%';
       $('center-pin').classList.toggle('hidden', st !== 'pin');
       $('loc-btn').classList.toggle('hidden', st !== 'pin');
+      $('map-search').classList.toggle('hidden', st !== 'pin');
+      if (st !== 'pin') { $('search-results').innerHTML = ''; $('search-input').value = ''; }
       $('map-cap').classList.toggle('hidden', !needMap);
 
       const backHidden = wizIdx === 0 && (wizMode === 'first' || wizMode === 'setup');
@@ -1477,6 +1496,37 @@
         }
       });
     }
+    let searchTimer = null, placesSvc = null;
+    function runPlaceSearch(q) {
+      if (!q.trim()) { $('search-results').innerHTML = ''; return; }
+      if (!placesSvc && kakao.maps.services) placesSvc = new kakao.maps.services.Places();
+      if (!placesSvc) return;
+      placesSvc.keywordSearch(q.trim(), (res, status) => {
+        if ($('search-input').value.trim() !== q.trim()) return;   // 입력이 바뀌었으면 무시
+        const box = $('search-results');
+        if (status !== kakao.maps.services.Status.OK || !res.length) { box.innerHTML = ''; return; }
+        box.innerHTML = res.slice(0, 5).map((r, i) =>
+          `<button type="button" data-i="${i}"><span class="rn">${esc(r.place_name)}</span><span class="ra">${esc(r.road_address_name || r.address_name || '')}</span></button>`).join('');
+        box.querySelectorAll('button').forEach(b => b.onclick = () => {
+          const r = res[+b.dataset.i];
+          mapBusy = true;
+          map.setCenter(new kakao.maps.LatLng(+r.y, +r.x));
+          map.setLevel(4);
+          if (draft) { draft[editIdx].lat = +r.y; draft[editIdx].lng = +r.x; }
+          $('search-input').value = r.place_name;
+          $('search-input').blur();
+          box.innerHTML = '';
+          setTimeout(() => { mapBusy = false; updatePinCaption(); }, 250);
+        });
+      });
+    }
+    $('search-input').addEventListener('input', e => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => runPlaceSearch(e.target.value), 350);
+    });
+    $('search-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { clearTimeout(searchTimer); runPlaceSearch(e.target.value); }
+    });
     $('loc-btn').addEventListener('click', () => {
       if (!navigator.geolocation || stepName() !== 'pin' || !draft) return;
       const btn = $('loc-btn');
