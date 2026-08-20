@@ -685,7 +685,8 @@
         : [{ name: '', lat: null, lng: null, radius_m: 800, radius_label: '도보 10분', days: 'always', meal_times: [] }];
       editIdx = 0;
       wizStep = 1;
-      ['slot-bar', 'hero', 'detail', 'visited-box'].forEach(id => $(id).classList.add('hidden'));
+      ['login-view', 'slot-bar', 'hero', 'detail', 'visited-box'].forEach(id => $(id).classList.add('hidden'));
+      document.body.classList.remove('login-mode');
       $('wiz-view').classList.remove('hidden');
       $('wiz-prog').classList.remove('hidden');
       document.body.classList.add('setup-mode');
