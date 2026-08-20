@@ -96,16 +96,16 @@
     #login-view { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
       padding: calc(env(safe-area-inset-top) + 52px) 12px 6px; }
     .login-brand { font-size: 13px; font-weight: 800; letter-spacing: .02em; color: var(--muted); }
-    #login-view .jb-char { width: 128px; height: 128px; margin-top: 0; image-rendering: pixelated; animation: bob 1.4s steps(1, end) infinite; }
+    #login-view .jb-char { width: 96px; height: 96px; margin-top: 0; image-rendering: pixelated; animation: bob 1.4s steps(1, end) infinite; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     .jb-char .lid { opacity: 0; animation: blink 4.6s linear infinite; }
     @keyframes blink { 0%, 91.5%, 96.5%, 100% { opacity: 0; } 92.5%, 95.5% { opacity: 1; } }
-    #login-view h2 { margin: 0; font-size: 48px; font-weight: 700; line-height: 1.15; }
-    .title-group { margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    #login-view h2 { margin: 0; font-size: 36px; font-weight: 700; line-height: 1.15; }
+    .title-group { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 11px; }
     .expand { display: inline-block; background: rgba(236, 225, 203, .13); color: var(--beige);
-      padding: 9px 16px; border-radius: 999px; font-weight: 700; font-size: 16px; line-height: 1.35; white-space: nowrap; }
+      padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 14px; line-height: 1.35; white-space: nowrap; }
     #login-view h2 .beige { color: var(--beige); }
-    #login-view p { margin: 30px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    #login-view p { margin: 26px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.65; }
     .login-grow { flex: 1; }
     #kakao-login { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 340px;
       padding: 16px; border: 0; border-radius: 999px; background: var(--kakao); color: #191600;
