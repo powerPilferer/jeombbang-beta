@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
   for (const d of due) {
     // 중복 발송 방지 — push_log에 처음 기록될 때만 발송
     const { data: ins } = await sb.from("push_log")
-      .upsert({ user_id: d.user_id, pick_date: today, slot: d.slot }, { onConflict: "user_id,pick_date,slot", ignoreDuplicates: true })
+      .upsert({ user_id: d.user_id, pick_date: today, slot: d.slot, t: d.time }, { onConflict: "user_id,pick_date,slot,t", ignoreDuplicates: true })
       .select();
     if (!ins || !ins.length) continue;
     const { data: subs } = await sb.from("push_subs").select("*").eq("user_id", d.user_id);
