@@ -714,36 +714,49 @@
         tease.innerHTML = `<span class="emo">${SLOTS[plan.next.slot].emoji}</span> 다음 · ${SLOTS[plan.next.slot].label}은 ${plan.next.time}에 정해드릴게요`;
       } else tease.classList.add('hidden');
 
+      const blockKey = s => 'mfj-block:' + todayStr() + ':' + s;
+      function renderLockedFor(mt, tomorrow) {
+        ['hero-wrap', 'detail', 'no-pick'].forEach(id => $(id).classList.add('hidden'));
+        $('next-tease').classList.add('hidden');
+        showPin(null);
+        $('locked').classList.remove('hidden');
+        $('locked-title').innerHTML = `${tomorrow ? '내일 ' : ''}${esc(mt.time)}에<br>${SLOTS[mt.slot].label}을 정해드릴게요`;
+        const tick = () => {
+          const [h, m] = mt.time.split(':').map(Number);
+          const target = new Date(); target.setHours(h, m, 0, 0);
+          if (tomorrow) target.setDate(target.getDate() + 1);
+          const diff = target - new Date();
+          if (diff <= 0) {
+            clearInterval(countdownTimer);
+            // 설정·온보딩 화면에 있으면 방해하지 않고, 홈으로 돌아올 때 공개
+            if (!document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode')) renderHome();
+            return;
+          }
+          const hh = Math.floor(diff / 3600000), mm = Math.ceil((diff % 3600000) / 60000);
+          $('locked-count').textContent = '공개까지 ' + (hh ? `${hh}시간 ${mm}분` : mm > 1 ? `${mm}분` : '곧 공개돼요');
+        };
+        tick();
+        countdownTimer = setInterval(tick, 20000);
+        renderVisited();
+      }
+
       if (!plan.current) {
         // 공개 전 — 잠김 카드 + 카운트다운
+        if (plan.first) { renderLockedFor(plan.first, false); return; }
         ['hero-wrap', 'detail', 'no-pick'].forEach(id => $(id).classList.add('hidden'));
         showPin(null);
-        const mt = plan.first;
-        if (mt) {
-          $('locked').classList.remove('hidden');
-          $('locked-title').innerHTML = `${esc(mt.time)}에<br>${SLOTS[mt.slot].label}을 정해드릴게요`;
-          const tick = () => {
-            const [h, m] = mt.time.split(':').map(Number);
-            const target = new Date(); target.setHours(h, m, 0, 0);
-            const diff = Math.max(0, target - new Date());
-            if (diff <= 0) {
-              clearInterval(countdownTimer);
-              // 설정·온보딩 화면에 있으면 방해하지 않고, 홈으로 돌아올 때 공개
-              if (!document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode')) renderHome();
-              return;
-            }
-            const hh = Math.floor(diff / 3600000), mm = Math.ceil((diff % 3600000) / 60000);
-            $('locked-count').textContent = '공개까지 ' + (hh ? `${hh}시간 ${mm}분` : mm > 1 ? `${mm}분` : '곧 공개돼요');
-          };
-          tick();
-          countdownTimer = setInterval(tick, 20000);
-        } else {
-          $('locked').classList.remove('hidden');
-          $('locked-title').innerHTML = '추천받을 시각을<br>정해주세요';
-          $('locked-count').textContent = '왼쪽 아래 📍 에서 설정할 수 있어요';
-        }
+        $('locked').classList.remove('hidden');
+        $('locked-title').innerHTML = '추천받을 시각을<br>정해주세요';
+        $('locked-count').textContent = '아래 📍 내 동네에서 설정할 수 있어요';
         renderVisited();
         return;
+      }
+
+      // 설정 직후엔 이미 지난 끼니를 소급 공개하지 않음 → 다음 끼니 잠김
+      if (!todayPicks.some(k => k.slot === plan.current.slot) && localStorage.getItem(blockKey(plan.current.slot))) {
+        if (plan.next) { renderLockedFor(plan.next, false); return; }
+        const mts = (spot.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+        if (mts.length) { renderLockedFor(mts[0], true); return; }
       }
 
       // 공개 후
@@ -1469,6 +1482,15 @@
           await sb.from('picks').delete().in('id', bad.map(b => b.id));
           todayPicks = todayPicks.filter(k => !bad.includes(k));
         }
+        // 설정 저장 시점에 이미 지난 끼니(픽 없음)는 오늘 소급 공개하지 않음
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        (sp.meal_times || []).forEach(m => {
+          const [h, mi] = m.time.split(':').map(Number);
+          if (h * 60 + mi <= nowMin && !todayPicks.some(k => k.slot === m.slot)) {
+            localStorage.setItem('mfj-block:' + todayStr() + ':' + m.slot, '1');
+          }
+        });
       }
       slotView = 0;
       renderHome();
@@ -1606,6 +1628,9 @@
       setMode('login');
     }
     async function boot() {
+      Object.keys(localStorage).forEach(k => {   // 지난 날짜 차단 표시 정리
+        if (k.startsWith('mfj-block:') && !k.startsWith('mfj-block:' + todayStr())) localStorage.removeItem(k);
+      });
       const { data: { session } } = await sb.auth.getSession();
       if (location.search.includes('code=')) history.replaceState(null, '', location.pathname);
       if (!session) { setMode('login'); return; }
