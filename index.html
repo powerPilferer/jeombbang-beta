@@ -682,7 +682,12 @@
             const [h, m] = mt.time.split(':').map(Number);
             const target = new Date(); target.setHours(h, m, 0, 0);
             const diff = Math.max(0, target - new Date());
-            if (diff <= 0) { clearInterval(countdownTimer); renderHome(); return; }
+            if (diff <= 0) {
+              clearInterval(countdownTimer);
+              // 설정·온보딩 화면에 있으면 방해하지 않고, 홈으로 돌아올 때 공개
+              if (!document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode')) renderHome();
+              return;
+            }
             const hh = Math.floor(diff / 3600000), mm = Math.ceil((diff % 3600000) / 60000);
             $('locked-count').textContent = '공개까지 ' + (hh ? `${hh}시간 ${mm}분` : mm > 1 ? `${mm}분` : '곧 공개돼요');
           };
