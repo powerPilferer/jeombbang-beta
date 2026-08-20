@@ -1355,7 +1355,8 @@
         if (setupCircle) { setupCircle.setMap(null); setupCircle.setMap(map); }
       }, 320);
       const opt = nearestRad(s.radius_m, regionOf(s));
-      $('map-cap').innerHTML = `<span class="emo">${s.radius_m <= 1600 ? '🚶' : '🚗'}</span> ${opt.cap}`;
+      const n = places.filter(p => distM(s.lat, s.lng, p.lat, p.lng) <= s.radius_m).length;
+      $('map-cap').innerHTML = `<span class="emo">${s.radius_m <= 1600 ? '🚶' : '🚗'}</span> ${opt.cap} · ${n ? `등록 식당 ${n}곳` : '아직 식당이 없는 동네예요'}`;
     }
     function updatePinCaption() {
       const s = draft[editIdx];
