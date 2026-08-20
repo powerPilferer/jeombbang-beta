@@ -61,8 +61,9 @@
     .map-size { position: absolute; right: 12px; bottom: 12px; z-index: 470; width: 40px; height: 40px; border: 0;
       border-radius: 50%; background: rgba(26,26,28,.92); color: var(--beige); display: grid; place-items: center;
       cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
-    .map-size svg { width: 18px; height: 18px; display: block; transition: transform .25s; }
-    #map-wrap.tall .map-size svg { transform: rotate(180deg); }
+    .map-size svg { width: 17px; height: 17px; display: block; }
+    .map-size .ic-shrink, #map-wrap.tall .map-size .ic-grow { display: none; }
+    #map-wrap.tall .map-size .ic-shrink { display: block; }
     .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.62); display: flex;
       align-items: center; justify-content: center; padding: 26px; }
     .modal-card { width: 100%; max-width: 340px; background: var(--card); border-radius: 20px; padding: 24px; }
@@ -408,7 +409,10 @@
     </button>
     <div class="map-cap hidden" id="map-cap"></div>
     <button type="button" class="map-size hidden" id="map-size-btn" aria-label="지도 크게 보기">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l5 5 5-5"/></svg>
+      <svg class="ic-grow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H3v5M12 3h5v5M8 17H3v-5M12 17h5v-5"/></svg>
+      <svg class="ic-shrink" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h5V3M17 8h-5V3M3 12h5v5M17 12h-5v5"/></svg>
     </button>
     <div id="map"></div>
   </div>
@@ -684,12 +688,14 @@
         distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m &&
         (p.slots || []).includes(slotKey));
       if (!cands.length) return [];
-      const score = p => (myReview(p.id) ? 0 : 1000) + avgOf(p.id) * 10 - distM(spot.lat, spot.lng, p.lat, p.lng) / 10000;
-      const ranked = cands.slice().sort((a, b) => score(b) - score(a));
+      const sortFn = (a, b) => (avgOf(b.id) - avgOf(a.id)) ||
+        (distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng));
+      const fresh = cands.filter(p => !myReview(p.id)).sort(sortFn);   // 안 가본 곳
+      const seen = cands.filter(p => myReview(p.id)).sort(sortFn);     // 가본 곳 — 항상 뒤
       const seedStr = todayStr() + slotKey + me.id;
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
-      const off = seed % ranked.length;
-      return ranked.slice(off).concat(ranked.slice(0, off));
+      const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
+      return rot(fresh).concat(rot(seen));   // 날짜 시드 회전은 그룹 안에서만
     }
 
     // ── 홈 렌더
