@@ -251,8 +251,11 @@
     .locked { text-align: center; padding: 44px 20px; }
     .locked h2 { margin: 18px 0 0; font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
     .locked-sub { margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
-    .push-cta { margin-top: 20px; padding: 11px 18px; border: 1.5px solid rgba(236,225,203,.45); border-radius: 999px;
-      background: none; color: var(--beige); font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+    .push-cta { margin-top: 20px; padding: 12px 26px; border: 0; border-radius: 999px;
+      background: var(--beige); color: var(--beige-ink); font-weight: 800; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+    .push-cta:active { transform: scale(.97); }
+    .push-cap { display: none; margin: 10px 0 0; color: #7d7d84; font-size: 11.5px; font-weight: 600; }
+    .push-cta:not(.hidden) + .push-cap { display: block; }
     .hero-wrap { position: relative; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
@@ -570,7 +573,8 @@
       <div class="locked-emo"><span class="emo lg">🍚</span></div>
       <h2 class="px" id="locked-title"></h2>
       <p class="locked-sub" id="locked-count"></p>
-      <button type="button" class="push-cta hidden" id="push-cta">🔔 공개되면 알려드릴게요</button>
+      <button type="button" class="push-cta hidden" id="push-cta">🔔 알림 켜기</button>
+      <p class="push-cap">켜두면 공개 시각에 알림으로 알려드려요</p>
     </section>
     <div class="hero-wrap hidden" id="hero-wrap">
       <div class="no-more" id="no-more"></div>
@@ -1967,8 +1971,8 @@
       btn.disabled = true; btn.textContent = '연결 중…';
       const r = await enablePush();
       btn.disabled = false;
-      if (r.ok) { btn.textContent = '🔔 알림 켜짐 — 공개되면 알려드릴게요'; setTimeout(() => btn.classList.add('hidden'), 2000); }
-      else { btn.textContent = '🔔 공개되면 알려드릴게요'; alert(r.msg); }
+      if (r.ok) { btn.textContent = '🔔 알림 켜짐!'; setTimeout(() => btn.classList.add('hidden'), 1800); }
+      else { btn.textContent = '🔔 알림 켜기'; alert(r.msg); }
     });
     $('fab').addEventListener('click', renderSettings);
     boot();
