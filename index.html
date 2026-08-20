@@ -773,6 +773,7 @@
     let reviews = [];          // DB reviews (전체)
     let nickById = {};         // user_id → nickname
     let todayPicks = [];       // 오늘 내 picks (shown)
+    let todayBlocks = new Set(); // 오늘 소급 공개 잠금 끼니 (재설정으로 지난 시각)
     let currentSlotKey = null;
     let countdownTimer = null;
     let scoutTimer = null;
@@ -866,7 +867,6 @@
         tease.innerHTML = `<span class="emo">${SLOTS[plan.next.slot].emoji}</span> 다음 · ${SLOTS[plan.next.slot].label}은 ${plan.next.time}에 정해드릴게요`;
       } else tease.classList.add('hidden');
 
-      const blockKey = s => 'mfj-block:' + todayStr() + ':' + s;
       function renderLockedFor(mt, tomorrow) {
         ['hero-wrap', 'detail', 'no-pick'].forEach(id => $(id).classList.add('hidden'));
         $('next-tease').classList.add('hidden');
@@ -905,8 +905,8 @@
         return;
       }
 
-      // 설정 직후엔 이미 지난 끼니를 소급 공개하지 않음 → 다음 끼니 잠김
-      if (!todayPicks.some(k => k.slot === plan.current.slot) && localStorage.getItem(blockKey(plan.current.slot))) {
+      // 설정 직후엔 이미 지난 끼니를 소급 공개하지 않음 → 다음 끼니 잠김 (서버 기록 — 모든 기기 동일)
+      if (!todayPicks.some(k => k.slot === plan.current.slot) && todayBlocks.has(plan.current.slot)) {
         if (plan.next) { renderLockedFor(plan.next, false); return; }
         const mts = (spot.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
         if (mts.length) { renderLockedFor(mts[0], true); return; }
@@ -1730,7 +1730,12 @@
           await sb.from('picks').delete().in('id', bad.map(b => b.id));
           todayPicks = todayPicks.filter(k => !bad.includes(k));
         }
-        passed.forEach(s => localStorage.setItem('mfj-block:' + todayStr() + ':' + s, '1'));
+        if (passed.size) {
+          await sb.from('slot_blocks').upsert(
+            [...passed].map(s => ({ user_id: me.id, pick_date: todayStr(), slot: s })),
+            { onConflict: 'user_id,pick_date,slot', ignoreDuplicates: true });
+          passed.forEach(s => todayBlocks.add(s));
+        }
       }
       // 새 동네 발굴 연출 — 2분간 "발굴 중" 화면 후 잠김/공개로 전환
       if (sp && places.some(p => distM(sp.lat, sp.lng, p.lat, p.lng) <= sp.radius_m)) {
@@ -1875,8 +1880,12 @@
       nickById = Object.fromEntries((r2.data || []).map(p => [p.id, p.nickname]));
     }
     async function loadPicks() {
-      const { data } = await sb.from('picks').select('id,slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at');
-      todayPicks = data || [];
+      const [r1, r2] = await Promise.all([
+        sb.from('picks').select('id,slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at'),
+        sb.from('slot_blocks').select('slot').eq('pick_date', todayStr())
+      ]);
+      todayPicks = r1.data || [];
+      todayBlocks = new Set((r2.data || []).map(b => b.slot));
     }
 
     // ── 부팅
@@ -1887,9 +1896,6 @@
       setMode('login');
     }
     async function boot() {
-      Object.keys(localStorage).forEach(k => {   // 지난 날짜 차단 표시 정리
-        if (k.startsWith('mfj-block:') && !k.startsWith('mfj-block:' + todayStr())) localStorage.removeItem(k);
-      });
       const { data: { session } } = await sb.auth.getSession();
       if (location.search.includes('code=')) history.replaceState(null, '', location.pathname);
       if (!session) { setMode('login'); return; }
