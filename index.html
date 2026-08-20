@@ -711,6 +711,13 @@
       const plan = slotPlan(spot);
       clearInterval(countdownTimer);
 
+      // 반경 안에 등록 식당이 아예 없으면 — 공개 시각과 무관하게 발굴중 안내
+      if (!places.some(p => distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m)) {
+        const firstSlot = (spot.meal_times || [])[0];
+        renderExploring(spot, firstSlot ? firstSlot.slot : null);
+        return;
+      }
+
       // 예고 라인
       const tease = $('next-tease');
       if (plan.current && plan.next) {
@@ -771,17 +778,7 @@
       revealedPlaces = shownRows.map(k => places.find(p => p.id === k.place_id)).filter(Boolean);
       if (!revealedPlaces.length) {
         if (!ranked.length) {
-          // 후보 없음 — 발굴 요청 자동 접수 + 잠김 스타일 안내
-          ['hero-wrap', 'detail'].forEach(id => $(id).classList.add('hidden'));
-          showPin(null);
-          const np = $('no-pick');
-          np.className = 'card locked';
-          np.innerHTML = `
-            <div class="locked-emo"><span class="emo lg seek">🔎</span></div>
-            <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
-            <p class="locked-sub">준비되면 ${SLOTS[currentSlotKey].label} 추천을 채워둘게요</p>`;
-          ensureExploreRequest(spot, currentSlotKey);
-          renderVisited();
+          renderExploring(spot, currentSlotKey);
           return;
         }
         // 첫 공개 — picks 고정
@@ -797,6 +794,21 @@
       if (slotView < 0) slotView = 0;
       $('hero-wrap').classList.remove('hidden');
       renderHero(spot);
+      renderVisited();
+    }
+
+    // 발굴중 안내 (식당 없는 동네 — 공개 시각과 무관)
+    function renderExploring(spot, slotKey) {
+      ['hero-wrap', 'detail', 'locked'].forEach(id => $(id).classList.add('hidden'));
+      $('next-tease').classList.add('hidden');
+      showPin(null);
+      const np = $('no-pick');
+      np.className = 'card locked';
+      np.innerHTML = `
+        <div class="locked-emo"><span class="emo lg seek">🔎</span></div>
+        <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
+        <p class="locked-sub">준비되면 ${slotKey ? SLOTS[slotKey].label + ' ' : ''}추천을 채워둘게요</p>`;
+      ensureExploreRequest(spot, slotKey || 'dinner');
       renderVisited();
     }
 
