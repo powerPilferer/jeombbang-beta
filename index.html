@@ -355,9 +355,10 @@
       display: grid; place-items: center; box-shadow: 0 8px 20px rgba(0,0,0,.4);
       transition: transform .2s ease, border-color .15s; pointer-events: none; }
     .ptr.dragging { transition: border-color .15s; }
-    .ptr .jb-char { width: 28px; height: 28px; image-rendering: pixelated; }
+    .ptr svg { width: 20px; height: 20px; display: block; color: var(--muted); }
     .ptr.ready { border-color: var(--beige); }
-    .ptr.busy .jb-char { animation: bob .5s steps(1, end) infinite; }
+    .ptr.ready svg { color: var(--beige); }
+    .ptr.busy svg { animation: sp .8s linear infinite; color: var(--beige); }
 
     /* ── 좌하단 플로팅 — 내 동네 설정 ── */
     .fab { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 18px); z-index: 950;
@@ -1906,8 +1907,10 @@
     // ── 당겨서 새로고침 (홈에서 맨 위일 때)
     const ptrEl = document.createElement('div');
     ptrEl.className = 'ptr';
-    ptrEl.innerHTML = document.querySelector('.topbar .jb-char').outerHTML;
+    ptrEl.innerHTML = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16.5 10a6.5 6.5 0 1 1-2.2-4.9"/><path d="M14.5 1.8v3.5H11"/></svg>`;
     document.body.appendChild(ptrEl);
+    const ptrIcon = ptrEl.querySelector('svg');
     let ptrStartY = null, ptrPull = 0, ptrBusy = false;
     const inHome = () => me && !document.body.classList.contains('login-mode')
       && !document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode');
@@ -1915,6 +1918,7 @@
     function ptrReset() {
       ptrEl.classList.remove('dragging', 'ready');
       ptrEl.style.transform = 'translate(-50%, -70px)';
+      ptrIcon.style.transform = '';
     }
     document.addEventListener('touchstart', e => {
       if (!inHome() || ptrBusy || !atTop()) { ptrStartY = null; return; }
@@ -1927,9 +1931,13 @@
       if (dy <= 0 || !atTop()) { if (ptrPull) ptrReset(); ptrPull = 0; ptrStartY = dy <= 0 ? ptrStartY : null; return; }
       ptrPull = Math.min(dy * 0.5, 105);
       if (ptrPull > 8) {
-        e.preventDefault();   // 사파리 고무줄 대신 점빵이가 내려옴
+        e.preventDefault();   // 브라우저 고무줄 대신 인디케이터가 내려옴
         ptrEl.classList.add('dragging');
-        ptrEl.classList.toggle('ready', ptrPull > 55);
+        const wasReady = ptrEl.classList.contains('ready');
+        const ready = ptrPull > 55;
+        ptrEl.classList.toggle('ready', ready);
+        if (ready && !wasReady && navigator.vibrate) navigator.vibrate(12);   // 임계점 햅틱 (안드로이드)
+        ptrIcon.style.transform = `rotate(${ptrPull * 3.4}deg)`;
         ptrEl.style.transform = `translate(-50%, ${ptrPull - 70}px)`;
       }
     }, { passive: false });
