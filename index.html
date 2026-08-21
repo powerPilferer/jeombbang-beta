@@ -342,6 +342,9 @@
     .fact { padding: 12px 8px; border-radius: 13px; background: var(--chip); text-align: center; }
     .fact strong, .fact span { display: block; }
     .fact strong { font-size: 14px; font-weight: 700; }
+    .fact strong.open { color: #4cd964; }
+    .fact strong.soon { color: var(--star); }
+    .fact strong.off { color: var(--muted); }
     .fact span { margin-top: 3px; color: var(--muted); font-size: 11px; }
     .go-map { width: 100%; margin-top: 16px; padding: 15px; border: 0; border-radius: 999px; color: var(--beige-ink);
       background: var(--beige); font-weight: 800; font-size: 14.5px; letter-spacing: -.02em; cursor: pointer; font-family: inherit; }
@@ -862,14 +865,18 @@
       const now = new Date();
       const t = now.getHours() * 60 + now.getMinutes();
       const fmt = m => `${String(Math.floor((m % 1440) / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-      if ((p.closed_days || []).includes(now.getDay())) return { cls: 'off', label: '오늘 휴무' };
+      if ((p.closed_days || []).includes(now.getDay()))
+        return { cls: 'off', label: '오늘 휴무', main: '오늘 휴무', sub: '정기 휴무일' };
       if (p.open_min == null || p.close_min == null) return null;
       const inRange = (t >= p.open_min && t < p.close_min) || (t + 1440 >= p.open_min && t + 1440 < p.close_min);
-      if (!inRange) return { cls: 'off', label: t < p.open_min ? `${fmt(p.open_min)} 오픈` : '영업 종료' };
+      if (!inRange) return t < p.open_min
+        ? { cls: 'off', label: `${fmt(p.open_min)} 오픈`, main: `${fmt(p.open_min)} 오픈`, sub: '아직 준비 중' }
+        : { cls: 'off', label: '영업 종료', main: '영업 종료', sub: '오늘은 마감' };
       if (p.break_start != null && p.break_end != null && t >= p.break_start && t < p.break_end)
-        return { cls: 'soon', label: `브레이크타임 · ${fmt(p.break_end)} 다시 열어요` };
-      if (p.close_min - t <= 60) return { cls: 'soon', label: `곧 마감 · ${fmt(p.close_min)}까지` };
-      return { cls: 'open', label: '영업 중' };
+        return { cls: 'soon', label: `브레이크타임 · ${fmt(p.break_end)} 다시 열어요`, main: '브레이크', sub: `${fmt(p.break_end)} 오픈` };
+      if (p.close_min - t <= 60)
+        return { cls: 'soon', label: `곧 마감 · ${fmt(p.close_min)}까지`, main: '곧 마감', sub: `${fmt(p.close_min)}까지` };
+      return { cls: 'open', label: '영업 중', main: '영업 중', sub: `${fmt(p.close_min)} 마감` };
     }
 
     // 공개 시각에 실제로 문이 열려 있는가 (영업시간·브레이크타임 — 데이터 없으면 통과)
@@ -1089,9 +1096,12 @@
       $('hero-ic').innerHTML = catIcon(p.category);
       $('hero-menu').textContent = `${p.menu} · ${(p.price || 0).toLocaleString()}원`;
       const avg = avgOf(p.id);
+      const hs = hoursStatus(p);
       $('hero-facts').innerHTML = `
         <div class="fact"><strong>${walkText(distM(spot.lat, spot.lng, p.lat, p.lng))}</strong><span>${esc(spot.name)}에서</span></div>
-        <div class="fact"><strong>${esc(p.category)}</strong><span>분류</span></div>
+        <div class="fact">${hs
+          ? `<strong class="${hs.cls}">${esc(hs.main)}</strong><span>${esc(hs.sub)}</span>`
+          : `<strong>${esc(p.category)}</strong><span>분류</span>`}</div>
         <div class="fact"><strong>${avg ? '★' + avg.toFixed(1) : '첫 개척'}</strong><span>${avg ? '리뷰 ' + placeReviews(p.id).length + '개' : '아직 리뷰 없음'}</span></div>`;
       // 스와이프 힌트
       const canReveal = revealedPlaces.length < 3 && candQueue.length > 0;
