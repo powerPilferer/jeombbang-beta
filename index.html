@@ -360,6 +360,7 @@
     .swipe-hint { width: 100%; margin-top: 12px; padding: 10px 0; color: var(--muted);
       font-size: 12.5px; font-weight: 700; user-select: none;
       display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .swipe-hint.solo { justify-content: center; }
     .swipe-hint .nav { display: inline-flex; align-items: center; color: #7a7a82; }
     .swipe-hint .nav svg { width: 10px; height: 18px; display: block; }
     #explore-req { width: 100%; margin-top: 13px; padding: 13px; border: 0; border-radius: 999px; background: var(--chip); color: var(--beige); font-weight: 700; cursor: pointer; font-family: inherit; }
@@ -1164,9 +1165,10 @@
       const hint = $('swipe-hint');
       const hintTxt = left > 0 ? `옆으로 밀어서 다른 곳 보기 · ${left}번 남음`
         : revealedPlaces.length > 1 ? `옆으로 밀어서 ${revealedPlaces.length}곳 비교하기` : '';
+      hint.classList.toggle('solo', !hintTxt);
       hint.innerHTML = hintTxt
         ? `<span class="nav">${CHEV_L}</span><span class="txt">${hintTxt}</span><span class="nav">${CHEV_R}</span>`
-        : '';
+        : `<span class="txt">이 시간대엔 여기 한 곳이에요</span>`;   // 후보가 하나뿐일 때
       renderDetail(p, spot);
       showPin(p);
       openPopup(p, spot);
