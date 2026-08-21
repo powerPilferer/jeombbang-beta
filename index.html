@@ -948,8 +948,14 @@
         if (mts.length) { renderLockedFor(mts[0], true); return; }
       }
 
-      // 공개 후
+      // 공개 후 — 단, 다음 끼니 1시간 전부터는 잠김 카운트다운으로 전환 (기대감 연출)
       $('locked').classList.add('hidden');
+      if (plan.next) {
+        const [nh, nm] = plan.next.time.split(':').map(Number);
+        const now2 = new Date();
+        const leftMin = nh * 60 + nm - (now2.getHours() * 60 + now2.getMinutes());
+        if (leftMin > 0 && leftMin <= 60) { renderLockedFor(plan.next, false); return; }
+      }
       currentSlotKey = plan.current.slot;
       const ranked = rankedCandidates(spot, currentSlotKey);
       // 오늘 픽 중 현재 설정과 안 맞는 것(다른 탭·기기의 낡은 상태로 생성)은 무효화
