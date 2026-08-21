@@ -2050,8 +2050,10 @@
         if (document.body.classList.contains('settings-mode')) renderSettings();
       }
     });
+    if (localStorage.getItem('mfj-map-tall')) $('map-wrap').classList.add('tall');   // 지난번 지도 크기 기억
     $('map-size-btn').addEventListener('click', () => {
-      $('map-wrap').classList.toggle('tall');
+      const tall = $('map-wrap').classList.toggle('tall');
+      localStorage.setItem('mfj-map-tall', tall ? '1' : '');
       setTimeout(relayoutKeep, 330);   // 높이 전환이 끝난 뒤 지도 재계산
     });
     document.addEventListener('visibilitychange', async () => {
