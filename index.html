@@ -359,7 +359,13 @@
     .mi { display: flex; justify-content: space-between; gap: 10px; padding: 10px 13px; border-radius: 11px; background: var(--chip); font-size: 13.5px; }
     .mi b { font-weight: 600; }
     .mi span { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .note { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+    .hours-box { margin: 14px 0 0; padding: 13px 15px; border-radius: 13px; background: var(--chip); display: flex; flex-direction: column; gap: 7px; }
+    .hours-box .st { align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: -.01em; }
+    .hours-box .st.open { background: rgba(76,217,100,.16); color: #4cd964; }
+    .hours-box .st.soon { background: rgba(255,214,10,.16); color: var(--star); }
+    .hours-box .st.off { background: rgba(255,255,255,.08); color: var(--muted); }
+    .hours-box .ht { color: var(--ink); font-size: 13px; font-weight: 600; line-height: 1.6; }
+    .hours-box .hn { color: var(--muted); font-size: 12px; line-height: 1.55; }
     .links { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
     .links a { font-weight: 700; font-size: 13px; text-decoration: none; line-height: 1; display: inline-flex; align-items: center; gap: 4px; }
     .links .tel { color: var(--beige); }
@@ -851,6 +857,21 @@
     }
 
     // ── 추천 후보: 반경 + 슬롯, 안 가본 곳 우선 + 평점·거리, 날짜 시드 회전
+    // 지금 영업 상태 (상세 카드 표시용)
+    function hoursStatus(p) {
+      const now = new Date();
+      const t = now.getHours() * 60 + now.getMinutes();
+      const fmt = m => `${String(Math.floor((m % 1440) / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+      if ((p.closed_days || []).includes(now.getDay())) return { cls: 'off', label: '오늘 휴무' };
+      if (p.open_min == null || p.close_min == null) return null;
+      const inRange = (t >= p.open_min && t < p.close_min) || (t + 1440 >= p.open_min && t + 1440 < p.close_min);
+      if (!inRange) return { cls: 'off', label: t < p.open_min ? `${fmt(p.open_min)} 오픈` : '영업 종료' };
+      if (p.break_start != null && p.break_end != null && t >= p.break_start && t < p.break_end)
+        return { cls: 'soon', label: `브레이크타임 · ${fmt(p.break_end)} 다시 열어요` };
+      if (p.close_min - t <= 60) return { cls: 'soon', label: `곧 마감 · ${fmt(p.close_min)}까지` };
+      return { cls: 'open', label: '영업 중' };
+    }
+
     // 공개 시각에 실제로 문이 열려 있는가 (영업시간·브레이크타임 — 데이터 없으면 통과)
     function openAt(p, hhmm) {
       if (p.open_min == null || p.close_min == null) return true;
@@ -866,8 +887,7 @@
       let cands = places.filter(p =>
         distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m &&
         (p.slots || []).includes(slotKey) &&
-        !(p.closed_days || []).includes(todayWd) &&
-        (!atTime || openAt(p, atTime)));   // 오늘 휴무·공개 시각 영업 종료·브레이크타임 제외
+        !(p.closed_days || []).includes(todayWd));   // 오늘 휴무인 집만 제외
       // 오늘 다른 끼니에서 이미 공개된 곳은 제외 (풀이 바닥나면 중복 허용)
       const otherSlotIds = new Set(todayPicks.filter(k => k.slot !== slotKey).map(k => k.place_id));
       if (otherSlotIds.size) {
@@ -877,7 +897,9 @@
       if (!cands.length) return [];
       // ── 추천 규칙 v2: 신입 데뷔 → 새 미방문 → 최근 노출 미방문 → 재추천(쿨다운)
       const dSort = (a, b) => distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng);
-      const sortFn = (a, b) => (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
+      // 공개 시각에 문 연 집을 같은 티어 안에서 앞으로 (브레이크타임 집도 밀면 볼 수 있음)
+      const openRank = p => (atTime && !openAt(p, atTime)) ? 1 : 0;
+      const sortFn = (a, b) => (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
       const isNewbie = p => (p.created_at || '').slice(0, 10) === todayStr();
       const t0 = [], t1 = [], t2 = [], t3 = [];
       for (const p of cands) {
@@ -891,7 +913,7 @@
         else if (recentPickIds.has(p.id)) t2.push(p);                  // 최근 3일 노출됐던 미방문
         else t1.push(p);                                               // 새 미방문
       }
-      t0.sort(dSort); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
+      t0.sort((a, b) => (openRank(a) - openRank(b)) || dSort(a, b)); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
       const seedStr = todayStr() + slotKey + me.id;
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
       const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
@@ -1096,7 +1118,10 @@
         <h3>${esc(p.name)}</h3>
         <p class="dmenu">${esc(p.menu)} · ${(p.price || 0).toLocaleString()}원</p>
         ${menus.length ? `<div class="menus">${menus.map(m => `<div class="mi"><b>${esc(m.name)}</b><span>${(m.price || 0).toLocaleString()}원</span></div>`).join('')}</div>` : ''}
-        <p class="note">🕐 ${esc(p.hours)}${p.note ? '<br>' + esc(p.note) : ''}</p>
+        ${(() => { const s = hoursStatus(p); return `<div class="hours-box">
+          ${s ? `<span class="st ${s.cls}">${esc(s.label)}</span>` : ''}
+          <span class="ht">🕐 ${esc(p.hours)}</span>
+          ${p.note ? `<span class="hn">${esc(p.note)}</span>` : ''}</div>`; })()}
         <div class="links">
           ${p.tel ? `<a class="tel" href="tel:${p.tel.replace(/-/g, '')}">📞 ${esc(p.tel)}</a>` : ''}
           <a class="kakao" href="https://map.kakao.com/link/map/${encodeURIComponent(p.name)},${p.lat},${p.lng}" target="_blank" rel="noopener">🗺 카카오지도</a>
