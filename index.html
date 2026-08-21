@@ -814,6 +814,7 @@
     let nickById = {};         // user_id → nickname
     let todayPicks = [];       // 오늘 내 picks (shown)
     let todayBlocks = new Set(); // 오늘 소급 공개 잠금 끼니 (재설정으로 지난 시각)
+    let recentPickIds = new Set(); // 최근 3일(오늘 제외) 노출됐던 곳 — 티어 강등용
     let currentSlotKey = null;
     let countdownTimer = null;
     let scoutTimer = null;
@@ -863,14 +864,31 @@
         if (filtered.length) cands = filtered;
       }
       if (!cands.length) return [];
-      const sortFn = (a, b) => (avgOf(b.id) - avgOf(a.id)) ||
-        (distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng));
-      const fresh = cands.filter(p => !myReview(p.id)).sort(sortFn);   // 안 가본 곳
-      const seen = cands.filter(p => myReview(p.id)).sort(sortFn);     // 가본 곳 — 항상 뒤
+      // ── 추천 규칙 v2: 신입 데뷔 → 새 미방문 → 최근 노출 미방문 → 재추천(쿨다운)
+      const dSort = (a, b) => distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng);
+      const sortFn = (a, b) => (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
+      const isNewbie = p => (p.created_at || '').slice(0, 10) === todayStr();
+      const t0 = [], t1 = [], t2 = [], t3 = [];
+      for (const p of cands) {
+        const mine = myReview(p.id);
+        if (mine) {
+          const rate = Number(mine.rate);
+          if (rate <= 2.5) continue;                                   // 별로였던 집은 재추천 안 함
+          if (mine.visited_on >= daysAgoStr(7)) continue;              // 방문 후 7일 쿨다운
+          t3.push(p);                                                  // 재추천 후보
+        } else if (isNewbie(p)) t0.push(p);                            // 오늘의 신입 — 그날 데뷔
+        else if (recentPickIds.has(p.id)) t2.push(p);                  // 최근 3일 노출됐던 미방문
+        else t1.push(p);                                               // 새 미방문
+      }
+      t0.sort(dSort); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
       const seedStr = todayStr() + slotKey + me.id;
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
       const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
-      return rot(fresh).concat(rot(seen));   // 날짜 시드 회전은 그룹 안에서만
+      const ranked = t0.concat(rot(t1), rot(t2), rot(t3));
+      if (!ranked.length && cands.length) {   // 전부 쿨다운·저평점으로 걸러지면 최후 안전망
+        return cands.sort(sortFn);
+      }
+      return ranked;
     }
 
     // ── 홈 렌더
@@ -1935,13 +1953,16 @@
       reviews = r1.data || [];
       nickById = Object.fromEntries((r2.data || []).map(p => [p.id, p.nickname]));
     }
+    const daysAgoStr = n => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
     async function loadPicks() {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         sb.from('picks').select('id,slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at'),
-        sb.from('slot_blocks').select('slot').eq('pick_date', todayStr())
+        sb.from('slot_blocks').select('slot').eq('pick_date', todayStr()),
+        sb.from('picks').select('place_id').gte('pick_date', daysAgoStr(3)).lt('pick_date', todayStr()).eq('status', 'shown')
       ]);
       todayPicks = r1.data || [];
       todayBlocks = new Set((r2.data || []).map(b => b.slot));
+      recentPickIds = new Set((r3.data || []).map(k => k.place_id));
     }
 
     // ── 부팅
