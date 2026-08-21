@@ -661,6 +661,10 @@
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e5a99ebf63e22edde31aa748643ad249&libraries=services"></script>
   <script>
     // ═══ 점빵이 베타 v3 — 뭐먹정 (공개 시각 모델 + 2슬롯 + 스와이프) ═══
+    // 카톡 인앱 브라우저 탈출 — 홈 화면 추가·푸시가 되는 기본 브라우저로
+    if (/KAKAOTALK/i.test(navigator.userAgent)) {
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent('https://powerpilferer.github.io/jeombbang-beta/');
+    }
     const SB_URL = 'https://wbtgaydqpupxgmwmxbdv.supabase.co';
     const SB_KEY = 'sb_publishable_kZD_r_s3lca-tdu8NqABnA_WVgHWKBo';
     const SITE = location.origin + location.pathname;
