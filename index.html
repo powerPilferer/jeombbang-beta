@@ -943,9 +943,12 @@
         !(p.closed_days || []).includes(todayWd));   // 오늘 휴무인 집만 제외
       // 오늘 다른 끼니에서 이미 공개된 곳은 제외 (풀이 바닥나면 중복 허용)
       const otherSlotIds = new Set(todayPicks.filter(k => k.slot !== slotKey).map(k => k.place_id));
+      let otherSlotSeen = [];
       if (otherSlotIds.size) {
+        otherSlotSeen = cands.filter(p => otherSlotIds.has(p.id));
         const filtered = cands.filter(p => !otherSlotIds.has(p.id));
         if (filtered.length) cands = filtered;
+        else otherSlotSeen = [];
       }
       if (!cands.length) return [];
       // ── 추천 규칙 v2: 신입 데뷔 → 새 미방문 → 최근 노출 미방문 → 재추천(쿨다운)
@@ -954,13 +957,14 @@
       const openRank = p => (atTime && !openAt(p, atTime)) ? 1 : 0;
       const sortFn = (a, b) => (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
       const isNewbie = p => (p.created_at || '').slice(0, 10) === todayStr();
-      const t0 = [], t1 = [], t2 = [], t3 = [];
+      const t0 = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
       for (const p of cands) {
         const mine = myReview(p.id);
+        if (isNewbie(p) && p.debut_slot && p.debut_slot !== slotKey) { relax.push(p); continue; }  // 신입은 담당 끼니 전용
         if (mine) {
           const rate = Number(mine.rate);
           if (rate <= 2.5) continue;                                   // 별로였던 집은 재추천 안 함
-          if (mine.visited_on >= daysAgoStr(7)) continue;              // 방문 후 7일 쿨다운
+          if (mine.visited_on >= daysAgoStr(7)) { relax.push(p); continue; }   // 방문 후 7일 쿨다운
           t3.push(p);                                                  // 재추천 후보
         } else if (isNewbie(p)) t0.push(p);                            // 오늘의 신입 — 그날 데뷔
         else if (recentPickIds.has(p.id)) t2.push(p);                  // 최근 3일 노출됐던 미방문
@@ -970,8 +974,12 @@
       const seedStr = todayStr() + slotKey + me.id;
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
       const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
-      const ranked = t0.concat(rot(t1), rot(t2), rot(t3));
-      if (!ranked.length && cands.length) {   // 전부 쿨다운·저평점으로 걸러지면 최후 안전망
+      let ranked = t0.concat(rot(t1), rot(t2), rot(t3));
+      if (ranked.length < 3) {   // 3곳을 못 채우면 쿨다운·중복 제외를 한 단계 완화
+        const spare = relax.concat(otherSlotSeen).sort(sortFn);
+        if (spare.length) ranked = ranked.concat(rot(spare));
+      }
+      if (!ranked.length && cands.length) {   // 그래도 없으면 최후 안전망
         return cands.sort(sortFn);
       }
       return ranked;
