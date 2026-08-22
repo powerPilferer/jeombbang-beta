@@ -395,6 +395,25 @@
     .visit-btn { margin-top: 16px; width: 100%; padding: 13px; border: 1.5px solid rgba(236,225,203,.55); border-radius: 999px;
       color: var(--beige); background: none; font-weight: 800; cursor: pointer; font-family: inherit; font-size: 14px; transition: .15s; }
     .visit-btn:active { transform: scale(.985); }
+    /* 찜 — 다녀왔어요 옆에 나란히 */
+    .visit-row { display: flex; gap: 8px; margin-top: 16px; }
+    .visit-row .visit-btn { margin-top: 0; flex: 1; }
+    .wish-btn { flex: none; width: 48px; border: 1.5px solid rgba(236,225,203,.55); border-radius: 999px; background: none;
+      color: var(--beige); font-size: 18px; cursor: pointer; display: grid; place-items: center; transition: .15s; }
+    .wish-btn.on { background: var(--beige); color: var(--beige-ink); border-color: var(--beige); }
+    .wish-btn:active { transform: scale(.93); }
+    /* 가보고 싶은 곳 카드 */
+    .wcard { cursor: default; }
+    .wcard .vstars .star:not(.on):not(.half) { color: #5a5a5e; }   /* 빈 별은 더 어둡게 — '아직 안 갔다'가 보이게 */
+    .wcard .wmeta { color: var(--muted); font-size: 11.5px; }
+    .wcard .wlinks { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+    .wcard .wlinks a { padding: 7px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 700; text-decoration: none; background: var(--chip); color: var(--ink); }
+    .wcard .wlinks a.kakao { background: #fae100; color: #191919; }
+    .wcard .wdel { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 7px 4px; font-family: inherit; }
+    .wcard .wform { display: none; gap: 8px; margin-top: 8px; }
+    .wcard .wform.on { display: grid; }
+    .wcard .wform textarea { width: 100%; min-height: 54px; padding: 10px 12px; border: 0; border-radius: 11px; background: #1c1c1e; color: var(--ink); font-family: inherit; font-size: 13px; resize: none; }
+    .wcard .wform .vsave { width: 100%; }
     .vform { margin-top: 12px; padding: 16px; border-radius: 16px; background: #1c1c1e; display: none; gap: 10px; }
     .vform.on { display: grid; }
     .star-row { display: flex; align-items: center; gap: 2px; }
@@ -669,6 +688,8 @@
     </div>
     <section class="card hidden" id="no-pick"></section>
     <section class="card detail hidden" id="detail"></section>
+    <div class="sec-title hidden" id="wish-title"><span class="emo">🔖</span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
+    <div class="list hidden" id="wish-list"></div>
     <div class="sec-title hidden" id="visited-title"><span class="emo">🍚</span> 다녀온 곳 <span class="n" id="visited-count">0</span></div>
     <div class="list hidden" id="visited-list"></div>
   </main>
@@ -886,6 +907,7 @@
     let countdownTimer = null;
     let scoutTimer = null;
     let cancelledGhosts = [];  // 이번 세션에 별점 취소한 곳 (화면 유지용)
+    let wishes = [];           // 내 찜 (place_id 배열, 최신순)
     // 슬롯 열람 상태
     let slotView = 0;          // 공개된 곳 중 지금 보는 인덱스
     let revealedPlaces = [];   // 오늘 공개된 곳 (순서대로)
@@ -987,6 +1009,11 @@
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
       const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
       let ranked = t0.concat(rot(t1), rot(t2), rot(t3));
+      // 찜해둔 집은 맨 앞으로 — 사용자가 고른 게 아니라 점빵이가 "저번에 찜한 데, 오늘 여기" 하고 정해주는 것
+      if (wishes.length) {
+        const wished = ranked.filter(p => isWished(p.id)).sort((a, b) => (openRank(a) - openRank(b)) || dSort(a, b));
+        if (wished.length) ranked = wished.concat(ranked.filter(p => !isWished(p.id)));
+      }
       if (ranked.length < 3) {   // 3곳을 못 채우면 쿨다운·중복 제외를 한 단계 완화
         const spare = relax.concat(otherSlotSeen).sort(sortFn);
         if (spare.length) ranked = ranked.concat(rot(spare));
@@ -1214,7 +1241,10 @@
             const who = nickById[r.user_id] || '익명';
             return `<div class="visit"><span class="who-chip${mine ? ' me' : ''}">${esc(who)}</span><b>${starText(r.rate)}</b>${r.comment ? ' · ' + esc(r.comment) : ''}<small>${r.visited_on}</small></div>`;
           }).join('')}</div>` : ''}
-        <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 리뷰 남기기</button>
+        <div class="visit-row">
+          <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 리뷰 남기기</button>
+          ${myReview(p.id) ? '' : `<button type="button" class="wish-btn${isWished(p.id) ? ' on' : ''}" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="${isWished(p.id)}">${isWished(p.id) ? '🔖' : '🏷'}</button>`}
+        </div>
         <div class="vform" id="visit-form">
           <div class="star-row">
             ${[1, 2, 3, 4, 5].map(v => `<button type="button" class="star" data-v="${v}">★</button>`).join('')}
@@ -1259,6 +1289,15 @@
     function wireReviewForm(p) {
       const form = $('visit-form');
       $('visit-btn').addEventListener('click', () => form.classList.toggle('on'));
+      const wb = $('wish-btn');
+      if (wb) wb.addEventListener('click', async () => {
+        wb.disabled = true;
+        await toggleWish(p.id);
+        wb.classList.toggle('on', isWished(p.id));
+        wb.textContent = isWished(p.id) ? '🔖' : '🏷';
+        wb.setAttribute('aria-pressed', String(isWished(p.id)));
+        wb.disabled = false;
+      });
       const ta = $('visit-comment');
       ta.addEventListener('input', () => { $('char-count').textContent = `${ta.value.length} / 50`; });
       let rate = 0;
@@ -1273,14 +1312,63 @@
         const { error } = await sb.from('reviews').upsert(rec, { onConflict: 'place_id,user_id' });
         if (error) { alert('저장 실패: ' + error.message); btn.disabled = false; btn.textContent = '기록하기'; return; }
         cancelledGhosts = cancelledGhosts.filter(g => g.place_id !== p.id);
+        await dropWish(p.id);
         await loadReviews();
         renderDetail(p, activeSpot());
+        renderWishes();
         renderVisited();
       });
     }
 
     // ── 다녀온 곳 (별 재탭 = 즉시 반영, 취소는 흐림 유지 → 다음 진입 때 제외)
+    // ── 가보고 싶은 곳 (찜) — 고르는 목록이 아니다: 지도로 가거나, 다녀와서 별을 누르거나
+    function renderWishes() {
+      const title = $('wish-title'), wrap = $('wish-list');
+      const items = wishes.map(id => places.find(p => p.id === id)).filter(Boolean);
+      title.classList.toggle('hidden', !items.length);
+      wrap.classList.toggle('hidden', !items.length);
+      $('wish-count').textContent = items.length;
+      if (!items.length) { wrap.innerHTML = ''; return; }
+      const spot = activeSpot();
+      wrap.innerHTML = items.map((p, i) => {
+        const walk = spot ? ' · ' + walkText(distM(spot.lat, spot.lng, p.lat, p.lng)) : '';
+        return `<div class="vcard wcard" data-i="${i}">
+          <div class="vstars">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="star" data-v="${n}">★</button>`).join('')}</div>
+          <span class="nm">${esc(p.name)}</span>
+          <span class="wmeta">${esc(p.menu)} ${(p.price || 0).toLocaleString()}원 · ${esc(p.hours || '')}${walk}</span>
+          <div class="wlinks">
+            <a class="kakao" href="https://map.kakao.com/link/map/${encodeURIComponent(p.name)},${p.lat},${p.lng}" target="_blank" rel="noopener">카카오지도</a>
+            <a href="https://map.naver.com/p/search/${encodeURIComponent(p.name)}" target="_blank" rel="noopener">네이버지도</a>
+            <button type="button" class="wdel">빼기</button>
+          </div>
+          <div class="wform">
+            <textarea class="wcomment" placeholder="짧은 감상평 (선택)" maxlength="50"></textarea>
+            <button type="button" class="vsave">다녀온 곳으로 기록</button>
+          </div>
+        </div>`;
+      }).join('');
+      wrap.querySelectorAll('.wcard').forEach(card => {
+        const p = items[+card.dataset.i];
+        let rate = 0;
+        const form = card.querySelector('.wform');
+        wireStars(card, r => { rate = r; form.classList.toggle('on', r > 0); });
+        card.querySelector('.wdel').onclick = async () => { await toggleWish(p.id); };
+        card.querySelector('.vsave').onclick = async () => {
+          if (!rate) return;
+          const btn = card.querySelector('.vsave');
+          btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+          const rec = { place_id: p.id, user_id: me.id, rate, comment: card.querySelector('.wcomment').value.trim().slice(0, 50), visited_on: todayStr(), updated_at: new Date().toISOString() };
+          const { error } = await sb.from('reviews').upsert(rec, { onConflict: 'place_id,user_id' });
+          if (error) { alert('저장 실패: ' + error.message); btn.disabled = false; btn.textContent = '다녀온 곳으로 기록'; return; }
+          await dropWish(p.id);
+          await loadReviews();
+          renderWishes();
+          renderVisited();
+        };
+      });
+    }
     function renderVisited() {
+      renderWishes();
       $('visited-title').classList.remove('hidden');
       $('visited-list').classList.remove('hidden');
       const wrap = $('visited-list');
@@ -1289,7 +1377,9 @@
         .concat(cancelledGhosts.filter(g => !mine.some(r => r.place_id === g.place_id)));
       $('visited-count').textContent = items.filter(i => i.rate > 0).length;
       if (!items.length) {
-        wrap.innerHTML = '<div class="empty-note">아직 기록이 없어요. 추천받은 곳에 다녀오면 별점을 남겨보세요.</div>';
+        $('visited-title').classList.add('hidden');
+        $('visited-list').classList.add('hidden');
+        wrap.innerHTML = '';
         return;
       }
       wrap.innerHTML = items.map((v, i) => {
@@ -2036,7 +2126,7 @@
     }
 
     // ── 화면 모드 전환
-    const HOME_IDS = ['push-banner', 'next-tease', 'locked', 'hero-wrap', 'no-pick', 'detail', 'visited-title', 'visited-list'];
+    const HOME_IDS = ['push-banner', 'next-tease', 'locked', 'hero-wrap', 'no-pick', 'detail', 'wish-title', 'wish-list', 'visited-title', 'visited-list'];
     function setMode(mode) {
       document.body.classList.remove('login-mode', 'setup-mode', 'no-map', 'settings-mode');
       $('login-view').classList.add('hidden');
@@ -2075,12 +2165,31 @@
       places = data || [];
     }
     async function loadReviews() {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         sb.from('reviews').select('*'),
-        sb.from('profiles').select('id,nickname')
+        sb.from('profiles').select('id,nickname'),
+        sb.from('wishes').select('place_id,created_at').order('created_at', { ascending: false })
       ]);
       reviews = r1.data || [];
       nickById = Object.fromEntries((r2.data || []).map(p => [p.id, p.nickname]));
+      wishes = (r3.data || []).map(w => w.place_id);
+    }
+    const isWished = id => wishes.includes(id);
+    async function toggleWish(placeId) {
+      if (isWished(placeId)) {
+        wishes = wishes.filter(id => id !== placeId);
+        await sb.from('wishes').delete().eq('user_id', me.id).eq('place_id', placeId);
+      } else {
+        wishes = [placeId, ...wishes];
+        await sb.from('wishes').insert({ user_id: me.id, place_id: placeId });
+      }
+      renderWishes();
+    }
+    // 별점이 남으면 찜은 끝난 것 — 어느 경로로 남기든 같게
+    async function dropWish(placeId) {
+      if (!isWished(placeId)) return;
+      wishes = wishes.filter(id => id !== placeId);
+      await sb.from('wishes').delete().eq('user_id', me.id).eq('place_id', placeId);
     }
     const daysAgoStr = n => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
     async function loadPicks() {

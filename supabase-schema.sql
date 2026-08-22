@@ -122,3 +122,15 @@ insert into public.places (id, name, category, menu, price, menus, description, 
 ('gulttuk-baeksuk', '굴뚝능이버섯백숙', '한식', '능이버섯닭백숙', 80000, '[{"name": "능이버섯닭백숙", "price": 80000}, {"name": "능이버섯오리백숙", "price": 80000}, {"name": "능계탕", "price": 18000}, {"name": "평일 점심특선(갈치조림·불고기·김치찌개 등)", "price": 10000}, {"name": "생선구이 2인세트", "price": 34000}]'::jsonb, '검고 진한 능이버섯 국물의 백숙 전문점 — 룸이 있어 가족 모임·보양 외식에 맞고, 평일 점심엔 1만원 특선도 한다', '매일 10:30–21:30 · 설·추석 당일 휴무 · 평일 점심특선은 15시까지 (2026-08-19 확인)', '031-594-3311', '백숙 80,000원은 2~4인 기준 대형 메뉴 — 인원 적으면 능계탕 권장 · 무료주차(앞 5~10대, 뒤 약 10대) · 좌표는 OSM 노드 9092994905와 다이닝코드(rid=0bipsvjt48i6)가 1m 이내 일치로 교차검증', 37.6600734, 127.2914085, 'maseok', '{lunch,dinner}', '2026-08-19'),
 ('hwado-bunsik', '화도분식', '분식', '국물떡볶이', 5000, '[{"name": "국물떡볶이", "price": 5000}, {"name": "수제튀김(모듬)", "price": 6000}, {"name": "꼬마김밥", "price": 6000}, {"name": "순대", "price": 5000}, {"name": "오뎅", "price": 4000}]'::jsonb, '고추장 대신 직접 담근 다데기를 숙성해 쓰는 떡볶이집 — 매일 아침 육수를 새로 내는 마석장터 곁 분식집', '월–금 11:00–00:30 · 일 11:00–22:30 · 토요일 휴무 (2026-08-19 확인)', '0507-1428-3840', '영업시간이 출처 간 갈림(다이닝코드 11:00–00:30 / 검색 요약 11:30–22:30) — 심야 방문은 전화 확인 권장 · 별나라프라자 105호 · 좌표는 다이닝코드(rid=hE1Th1G3wq8z)', 37.656765, 127.3033424, 'maseok', '{lunch,dinner,latenight}', '2026-08-19'),
 ('taehee-donkatsu', '태희돈까스', '돈까스', '수제 등심돈까스', 11000, '[{"name": "수제 등심돈까스(2장)", "price": 11000}, {"name": "치즈 등심돈까스", "price": 10500}, {"name": "수제 함박스테이크", "price": 12000}, {"name": "제육덮밥", "price": 10000}]'::jsonb, '동네 사랑방 같은 수제돈까스집 — 등심 2장에 1만원 초반, 배달 위주지만 매장 식사도 된다', '매일 10:30–20:00 · 연중무휴 (2026-08-19 확인)', '031-592-3373', '배달 비중이 큰 가게라 매장 좌석은 소규모 · 반찬·장국·물 셀프 · 라스트오더 미확인 · 좌표는 다이닝코드(rid=2aAuhFwk5uxU)', 37.6549328, 127.3000487, 'maseok', '{lunch,dinner}', '2026-08-19');
+
+-- ── wishes: 가보고 싶은 곳 (찜). 본인만 읽고 쓴다 — 고르는 목록이 아니라 기억
+create table public.wishes (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  place_id text not null references public.places(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, place_id)
+);
+alter table public.wishes enable row level security;
+create policy "내 찜 읽기" on public.wishes for select using (auth.uid() = user_id);
+create policy "내 찜 추가" on public.wishes for insert with check (auth.uid() = user_id);
+create policy "내 찜 삭제" on public.wishes for delete using (auth.uid() = user_id);
