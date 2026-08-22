@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>점빵이 베타 현황</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1a1a1c">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--ink:#fff;--muted:#98989f;--paper:#1a1a1c;--card:#2c2c2e;--chip:#3a3a3c;--beige:#ece1cb;--beige-ink:#2b2416;--line:rgba(255,255,255,.08)}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo",sans-serif;
+  padding:34px 16px calc(env(safe-area-inset-bottom) + 50px)}
+.wrap{max-width:1040px;margin:0 auto}
+h1{font-family:'Mona12',monospace;-webkit-font-smoothing:none;font-size:22px;margin:0;color:var(--beige)}
+.sub{color:var(--muted);font-size:12px;margin:9px 0 24px}
+/* 잠금 화면 */
+.gate{max-width:320px;margin:16vh auto 0;text-align:center}
+.gate p{color:var(--muted);font-size:13px;margin:14px 0 22px}
+.gate input{width:100%;border:0;border-bottom:1.5px solid rgba(236,225,203,.9);background:none;color:var(--ink);
+  padding:8px 2px 12px;font-size:17px;font-weight:700;font-family:inherit;text-align:center}
+.gate input:focus{outline:none}
+.gate button{width:100%;margin-top:22px;padding:15px;border:0;border-radius:999px;background:var(--beige);
+  color:var(--beige-ink);font-weight:800;font-size:14.5px;cursor:pointer;font-family:inherit}
+.gate .err{color:#ff6b5e;font-size:12.5px;font-weight:700;margin-top:14px;min-height:18px}
+/* 대시보드 */
+.cards{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px}
+.kpi{background:var(--card);border-radius:14px;padding:14px 18px;min-width:96px;flex:1}
+.kpi b{display:block;font-size:22px;letter-spacing:-.02em}
+.kpi span{color:var(--muted);font-size:11px}
+.tbl{background:var(--card);border-radius:16px;overflow:hidden}
+.row{display:flex;gap:12px;padding:14px 15px;border-top:1px solid var(--line);align-items:flex-start;flex-wrap:wrap}
+.row:first-child{border:0}
+.who{min-width:110px}.who b{display:block;font-size:15px}.who span{color:var(--muted);font-size:11px}
+.sp{flex:1;min-width:200px}
+.sp .line{margin-bottom:8px}.sp .line:last-child{margin:0}
+.chip{display:inline-block;background:rgba(236,225,203,.14);color:var(--beige);padding:3px 8px;border-radius:999px;font-size:10.5px;font-weight:800;margin-right:6px}
+.sp b{font-size:14px}.sp .reg{color:var(--muted);font-size:11.5px;margin-left:6px}
+.sp .times{margin-top:3px;color:#c8c8cf;font-size:12px}
+.nums{display:flex;gap:14px}
+.num{text-align:center;min-width:46px}.num b{display:block;font-size:16px}.num span{color:var(--muted);font-size:10.5px}
+.push{padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--muted);font-size:11px;font-weight:700}
+.push.on{background:rgba(76,217,100,.16);color:#4cd964}
+h2{font-size:12.5px;color:var(--muted);margin:26px 0 10px;font-weight:800;letter-spacing:.04em}
+.regions{display:flex;gap:8px;flex-wrap:wrap}
+.rg{background:var(--card);border-radius:12px;padding:10px 14px;font-size:13px}
+.rg span{color:var(--muted);font-size:11px;margin-left:6px}
+.revs{display:grid;gap:7px}
+.rev{background:var(--card);border-radius:12px;padding:11px 13px;font-size:12.5px;line-height:1.55}
+.rev b{color:#ffd60a;margin-right:6px}.rev small{color:var(--muted);margin-left:6px}
+.refresh{margin-top:26px;width:100%;padding:13px;border:1.5px solid rgba(236,225,203,.4);border-radius:999px;
+  background:none;color:var(--beige);font-weight:800;font-size:13px;cursor:pointer;font-family:inherit}
+.hidden{display:none!important}
+</style></head>
+<body>
+<div class="wrap">
+  <div id="gate" class="gate">
+    <h1>점빵이 현황</h1>
+    <p>암호를 입력하면 베타 현황을 볼 수 있어요</p>
+    <input id="pw" type="password" placeholder="암호" autocomplete="current-password">
+    <button id="go">확인</button>
+    <div class="err" id="err"></div>
+  </div>
+  <div id="board" class="hidden"></div>
+</div>
+<script>
+const API = 'https://wbtgaydqpupxgmwmxbdv.supabase.co/functions/v1/status';
+const $ = id => document.getElementById(id);
+const SLOT = { breakfast:['🌅','아침'], lunch:['🌤️','점심'], dinner:['🌙','저녁'], latenight:['🌃','야식'] };
+const DAYS = { always:'매일', weekday:'평일', weekend:'주말·공휴일', custom:'지정 요일' };
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dist = (a1,o1,a2,o2) => { const R=6371000, r=x=>x*Math.PI/180;
+  const h=Math.sin(r(a2-a1)/2)**2+Math.cos(r(a1))*Math.cos(r(a2))*Math.sin(r(o2-o1)/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h)); };
+
+async function load(key) {
+  const res = await fetch(API, { method:'POST', headers:{ 'x-status-key': key } });
+  if (!res.ok) throw new Error('unauthorized');
+  return res.json();
+}
+function render(d) {
+  const active = d.places.filter(p => p.active);
+  const today = new Date(Date.now()+9*3600000).toISOString().slice(0,10);
+  const cnt = (arr, k) => arr.reduce((m,x) => (m[x[k]]=(m[x[k]]||0)+1, m), {});
+  const revBy = cnt(d.reviews,'user_id'), pickBy = cnt(d.picks,'user_id');
+  const todayBy = cnt(d.picks.filter(p=>p.pick_date===today),'user_id');
+  const subSet = new Set(d.subs.map(s=>s.user_id));
+  const poolBy = cnt(active,'region');
+  const newToday = active.filter(p => (p.created_at||'').slice(0,10)===today).length;
+  const rows = d.profiles.map(u => {
+    const mine = d.spots.filter(s => s.user_id===u.id);
+    const cards = mine.map(s => {
+      const near = active.filter(p => dist(+s.lat,+s.lng,p.lat,p.lng) <= s.radius_m);
+      const reg = near.length ? Object.entries(cnt(near,'region')).sort((a,b)=>b[1]-a[1])[0][0] : '—';
+      const times = (s.meal_times||[]).slice().sort((a,b)=>a.time.localeCompare(b.time))
+        .map(m => `${SLOT[m.slot][0]} ${m.time} ${SLOT[m.slot][1]}`).join(' · ');
+      return `<div class="line"><span class="chip">${esc(DAYS[s.days]||s.days)}</span><b>${esc(s.name)}</b>
+        <span class="reg">${esc(reg)} · ${esc(s.radius_label)} · 풀 ${near.length}곳</span>
+        <div class="times">${esc(times || '시각 미설정')}</div></div>`;
+    }).join('') || '<span style="color:#63636a;font-size:12px">아직 설정 안 함</span>';
+    const j = new Date(u.created_at); j.setHours(j.getHours()+9);
+    return `<div class="row">
+      <div class="who"><b>${esc(u.nickname)}</b><span>${j.toISOString().slice(5,16).replace('T',' ')} 가입</span></div>
+      <div class="sp">${cards}</div>
+      <div class="nums">
+        <div class="num"><span class="push ${subSet.has(u.id)?'on':''}">${subSet.has(u.id)?'알람':'꺼짐'}</span></div>
+        <div class="num"><b>${revBy[u.id]||0}</b><span>리뷰</span></div>
+        <div class="num"><b>${pickBy[u.id]||0}</b><span>누적</span></div>
+        <div class="num"><b>${todayBy[u.id]||0}</b><span>오늘</span></div>
+      </div></div>`;
+  }).join('');
+  const nick = Object.fromEntries(d.profiles.map(p=>[p.id,p.nickname]));
+  const pname = Object.fromEntries(d.places.map(p=>[p.name,p.name]));
+  const revs = d.reviews.slice().sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,8).map(r =>
+    `<div class="rev"><b>★${Number(r.rate).toFixed(1)}</b>${esc(nick[r.user_id]||'?')} · ${esc(r.comment||'(코멘트 없음)')}<small>${r.visited_on}</small></div>`).join('');
+  $('board').innerHTML = `
+    <h1>점빵이 베타 현황</h1>
+    <p class="sub">${new Date(d.now).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} 기준</p>
+    <div class="cards">
+      <div class="kpi"><b>${d.profiles.length}</b><span>테스터</span></div>
+      <div class="kpi"><b>${Object.keys(poolBy).length}</b><span>지역</span></div>
+      <div class="kpi"><b>${active.length}</b><span>식당</span></div>
+      <div class="kpi"><b>${newToday}</b><span>오늘 신입</span></div>
+      <div class="kpi"><b>${subSet.size}</b><span>알람 켜짐</span></div>
+      <div class="kpi"><b>${d.reviews.length}</b><span>리뷰</span></div>
+    </div>
+    <div class="tbl">${rows}</div>
+    <h2>지역별 식당 풀</h2>
+    <div class="regions">${Object.entries(poolBy).sort((a,b)=>b[1]-a[1]).map(([r,n])=>`<div class="rg">${esc(r)}<span>${n}곳</span></div>`).join('')}</div>
+    <h2>최근 리뷰</h2><div class="revs">${revs || '<div class="rev">아직 없어요</div>'}</div>
+    <button class="refresh" id="again">새로고침</button>`;
+  $('again').onclick = () => start(sessionStorage.getItem('jk'), true);
+}
+async function start(key, silent) {
+  try {
+    const d = await load(key);
+    sessionStorage.setItem('jk', key);
+    localStorage.setItem('jk', key);
+    $('gate').classList.add('hidden'); $('board').classList.remove('hidden');
+    render(d);
+  } catch (e) {
+    if (!silent) { $('err').textContent = '암호가 맞지 않아요'; $('pw').value = ''; }
+    localStorage.removeItem('jk');
+    $('gate').classList.remove('hidden'); $('board').classList.add('hidden');
+  }
+}
+$('go').onclick = () => { $('err').textContent=''; start($('pw').value.trim()); };
+$('pw').addEventListener('keydown', e => { if (e.key==='Enter') $('go').click(); });
+const saved = localStorage.getItem('jk');
+if (saved) start(saved, true);
+</script>
+</body></html>
