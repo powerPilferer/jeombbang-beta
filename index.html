@@ -859,13 +859,23 @@
     let radiusCircle = null, myOv = null, pinOv = null;
     const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.62, zIndex: 30 });
     kakao.maps.event.addListener(map, 'click', () => popupOv.setMap(null));
+    // 원이 화면보다 훨씬 크면 어차피 안 보인다 — 그리지 않는다 (큰 원은 드래그마다 다시 그려져 폰에서 끊김)
+    let radiusSpot = null;
+    function syncRadiusCircle() {
+      if (!radiusCircle || !radiusSpot) return;
+      const fitLevel = radiusSpot.radius_m > 8000 ? 9 : radiusSpot.radius_m > 4000 ? 8 : radiusSpot.radius_m > 2500 ? 7 : radiusSpot.radius_m > 1000 ? 6 : 5;
+      const show = map.getLevel() >= fitLevel - 1;   // 기본 줌보다 한 단계 더 당긴 것까지만 표시
+      if (show !== !!radiusCircle.getMap()) radiusCircle.setMap(show ? map : null);
+    }
+    kakao.maps.event.addListener(map, 'zoom_changed', syncRadiusCircle);
     function applySpotToMap(spot) {
       if (radiusCircle) radiusCircle.setMap(null);
+      radiusSpot = spot;
       if (myOv) myOv.setMap(null);
       if (!spot) return;
       radiusCircle = new kakao.maps.Circle({
         map, center: new kakao.maps.LatLng(spot.lat, spot.lng), radius: spot.radius_m,
-        strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'shortdash',
+        strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'solid',   // 점선은 줌 당길수록 조각 수가 폭증해 사파리가 버벅임
         fillColor: '#ece1cb', fillOpacity: .1
       });
       const el = document.createElement('div');
@@ -873,6 +883,7 @@
       myOv = new kakao.maps.CustomOverlay({ map, position: new kakao.maps.LatLng(spot.lat, spot.lng), content: el, yAnchor: .5, zIndex: 6 });
       map.setLevel(spot.radius_m > 8000 ? 9 : spot.radius_m > 4000 ? 8 : spot.radius_m > 2500 ? 7 : spot.radius_m > 1000 ? 6 : 5);
       map.setCenter(new kakao.maps.LatLng(spot.lat, spot.lng));
+      syncRadiusCircle();
       $('map-note').textContent = `${spot.name} ${spot.radius_label} 맛지도`;
     }
     function showPin(place) {
@@ -1863,7 +1874,7 @@
       if (setupCircle) setupCircle.setMap(null);
       setupCircle = new kakao.maps.Circle({
         map, center: new kakao.maps.LatLng(s.lat, s.lng), radius: s.radius_m,
-        strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'shortdash',
+        strokeWeight: 2, strokeColor: '#2b2416', strokeOpacity: .5, strokeStyle: 'solid',   // 점선은 줌 당길수록 조각 수가 폭증해 사파리가 버벅임
         fillColor: '#ece1cb', fillOpacity: .22
       });
       const b = setupCircle.getBounds();
