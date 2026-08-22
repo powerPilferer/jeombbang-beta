@@ -1970,7 +1970,7 @@
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
-          <button type="button" class="etc-row" id="push-row">알람 설정 <b id="push-state">확인 중…</b></button>
+          <button type="button" class="etc-row" id="push-row"><span><span class="emo" style="font-size:14px;vertical-align:-2px;margin-right:7px">🔔</span>알람 설정</span> <b id="push-state">확인 중…</b></button>
           <button type="button" class="etc-row danger" id="settings-logout">로그아웃</button>
         </div>`;
       $('set-back').onclick = () => renderHome();
