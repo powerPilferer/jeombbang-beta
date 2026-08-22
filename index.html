@@ -1470,10 +1470,18 @@
     $('go-map').addEventListener('click', () => {
       const p = currentPlace();
       if (!p) return;
-      map.panTo(new kakao.maps.LatLng(p.lat, p.lng));
-      if (map.getLevel() > 4) map.setLevel(4);
-      openPopup(p, activeSpot());
-      $('map-wrap').scrollIntoView({ behavior: 'smooth' });
+      const wrap = $('map-wrap');
+      const focus = () => {
+        map.relayout();   // 높이가 바뀐 뒤 중심을 잡아야 식당이 정중앙에 온다
+        map.setLevel(4);
+        map.setCenter(new kakao.maps.LatLng(p.lat, p.lng));
+        openPopup(p, activeSpot());
+      };
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (wrap.classList.contains('tall')) { focus(); return; }
+      wrap.classList.add('tall');
+      localStorage.setItem('mfj-map-tall', '1');
+      setTimeout(focus, 330);   // 확장 트랜지션(.3s)이 끝난 뒤
     });
 
     // ── 온보딩 위저드 — (닉네임) → 지도 핀 → 동네 이름 → 반경 → 시각
