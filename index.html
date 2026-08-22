@@ -641,8 +641,8 @@
       <div class="locked-emo"><span class="emo lg">🍚</span></div>
       <h2 class="px" id="locked-title"></h2>
       <p class="locked-sub" id="locked-count"></p>
-      <button type="button" class="push-cta hidden" id="push-cta">🔔 알림 켜기</button>
-      <p class="push-cap">켜두면 공개 시각에 알림으로 알려드려요</p>
+      <button type="button" class="push-cta hidden" id="push-cta">🔔 알람 켜기</button>
+      <p class="push-cap">켜두면 정해지는 시각에 알람으로 알려드려요</p>
     </section>
     <div class="hero-wrap hidden" id="hero-wrap">
       <div class="no-more" id="no-more"></div>
@@ -727,19 +727,19 @@
       catch (_) { return null; }
     }
     async function enablePush() {
-      if (!pushSupported()) return { ok: false, msg: '이 브라우저는 알림을 지원하지 않아요.' };
-      if (isIOS && !isStandalone()) return { ok: false, msg: '아이폰은 공유 → 홈 화면에 추가한 앱에서 알림을 켤 수 있어요.' };
+      if (!pushSupported()) return { ok: false, msg: '이 브라우저는 알람을 지원하지 않아요.' };
+      if (isIOS && !isStandalone()) return { ok: false, msg: '아이폰은 공유 → 홈 화면에 추가한 앱에서 알람을 켤 수 있어요.' };
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') return { ok: false, msg: isIOS && isStandalone()
-        ? '알림이 꺼져 있어요 — 아이폰 설정 → 뭐먹정 → 알림에서 허용한 뒤 다시 눌러주세요.'
-        : '알림이 꺼져 있어요 — 브라우저 주소창 옆 사이트 설정에서 알림을 허용한 뒤 다시 눌러주세요.' };
+        ? '알람이 꺼져 있어요 — 아이폰 설정 → 뭐먹정 → 알림에서 허용한 뒤 다시 눌러주세요.'
+        : '알람이 꺼져 있어요 — 브라우저 주소창 옆 사이트 설정에서 알림을 허용한 뒤 다시 눌러주세요.' };
       const reg = await navigator.serviceWorker.ready;
       let sub = await reg.pushManager.getSubscription();
       if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUB) });
       const j = sub.toJSON();
       const { error } = await sb.from('push_subs').upsert(
         { user_id: me.id, endpoint: sub.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
-      if (error) return { ok: false, msg: '알림 등록 실패: ' + error.message };
+      if (error) return { ok: false, msg: '알람 등록 실패: ' + error.message };
       return { ok: true };
     }
     async function disablePush() {
@@ -756,11 +756,11 @@
       if (await getPushSub()) return;                       // 이미 켬
       const needInstall = isIOS && !isStandalone();
       el.innerHTML = needInstall
-        ? `<div class="pb-txt"><b>🔔 알림은 홈 화면 앱에서 받을 수 있어요</b>
+        ? `<div class="pb-txt"><b>🔔 알람은 홈 화면 앱에서 받을 수 있어요</b>
              <span>공유 버튼 → '홈 화면에 추가' 하면 정해지는 순간 알려드려요</span></div>
            <button type="button" class="pb-x" id="pb-x" aria-label="닫기">✕</button>`
-        : `<div class="pb-txt"><b>🔔 정해지면 알려드릴까요?</b>
-             <span>공개 시각에 알림 한 번, 그게 전부예요</span></div>
+        : `<div class="pb-txt"><b>🔔 정해지면 알람 드릴까요?</b>
+             <span>정해지는 시각에 알람 한 번, 그게 전부예요</span></div>
            <button type="button" class="pb-btn" id="pb-btn">켜기</button>
            <button type="button" class="pb-x" id="pb-x" aria-label="닫기">✕</button>`;
       el.classList.remove('hidden');
@@ -1970,7 +1970,7 @@
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
-          <button type="button" class="etc-row" id="push-row">공개 알림 <b id="push-state">확인 중…</b></button>
+          <button type="button" class="etc-row" id="push-row">추천 알람 <b id="push-state">확인 중…</b></button>
           <button type="button" class="etc-row danger" id="settings-logout">로그아웃</button>
         </div>`;
       $('set-back').onclick = () => renderHome();
@@ -2150,8 +2150,8 @@
       btn.disabled = true; btn.textContent = '연결 중…';
       const r = await enablePush();
       btn.disabled = false;
-      if (r.ok) { btn.textContent = '🔔 알림 켜짐!'; setTimeout(() => btn.classList.add('hidden'), 1800); }
-      else { btn.textContent = '🔔 알림 켜기'; alert(r.msg); }
+      if (r.ok) { btn.textContent = '🔔 알람 켜짐!'; setTimeout(() => btn.classList.add('hidden'), 1800); }
+      else { btn.textContent = '🔔 알람 켜기'; alert(r.msg); }
     });
     $('fab').addEventListener('click', renderSettings);
     boot();
