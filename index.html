@@ -61,8 +61,7 @@
 
     /* ── 모바일 레이아웃: 탑바 + 지도 + 콘텐츠 ── */
     .topbar { position: sticky; top: 0; z-index: 900;
-      padding: calc(env(safe-area-inset-top) + 12px) 18px 12px; background: var(--panel);
-      backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); }
+      padding: calc(env(safe-area-inset-top) + 12px) 18px 12px; background: #1c1c1ef2; }
     .topbar-in { display: flex; align-items: center; gap: 9px; max-width: 394px; margin: 0 auto; }
     .topbar .brand { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
     .topbar .jb-char { image-rendering: pixelated; }
@@ -112,9 +111,9 @@
       cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
     .loc-btn svg { width: 20px; height: 20px; display: block; }
     .loc-btn.busy svg { animation: sp 1s linear infinite; }
-    #map { position: absolute; inset: 0; background: #e9e2d6; }
+    #map { position: absolute; inset: 0; background: #e9e2d6; contain: strict; }
     .map-note { position: absolute; z-index: 450; left: 12px; top: 12px; padding: 8px 12px; border-radius: 11px;
-      background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: #1c1c1eeb;   /* 지도가 매 프레임 다시 그려져 backdrop-filter는 비용이 크다 — 불투명 배경으로 대체 */
       font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
     main { max-width: 430px; margin: 0 auto; padding: 16px 18px calc(env(safe-area-inset-bottom) + 110px); display: grid; gap: 14px; overflow-x: clip; }
 
@@ -821,7 +820,7 @@
     const catIcon = cat => CAT_ICONS[cat] || CAT_ICONS[CAT_ALIAS[cat]] || CAT_ICONS['백반'];
 
     // ── 지도
-    const map = new kakao.maps.Map($('map'), { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 8 });
+    const map = new kakao.maps.Map($('map'), { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 8, tileAnimation: false });  // 타일 페이드인은 저사양 폰에서 끊김의 주범
     let radiusCircle = null, myOv = null, pinOv = null;
     const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.62, zIndex: 30 });
     kakao.maps.event.addListener(map, 'click', () => popupOv.setMap(null));
