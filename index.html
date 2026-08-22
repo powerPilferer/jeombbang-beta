@@ -112,6 +112,9 @@
     .loc-btn svg { width: 20px; height: 20px; display: block; }
     .loc-btn.busy svg { animation: sp 1s linear infinite; }
     #map { position: absolute; inset: 0; background: #e9e2d6; contain: strict; }
+    /* 진단용 ?flat=1 — 사파리의 둥근 모서리 클리핑 비용이 버벅임 원인인지 확인 */
+    body.flat-map #map-wrap { border-radius: 0; overflow: visible; transform: none; isolation: auto; }
+    body.flat-map #map { contain: none; }
     .map-note { position: absolute; z-index: 450; left: 12px; top: 12px; padding: 8px 12px; border-radius: 11px;
       background: #1c1c1eeb;   /* 지도가 매 프레임 다시 그려져 backdrop-filter는 비용이 크다 — 불투명 배경으로 대체 */
       font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
@@ -851,6 +854,7 @@
     const catIcon = cat => CAT_ICONS[cat] || CAT_ICONS[CAT_ALIAS[cat]] || CAT_ICONS['백반'];
 
     // ── 지도
+    if (new URLSearchParams(location.search).get('flat') === '1') document.body.classList.add('flat-map');
     const map = new kakao.maps.Map($('map'), { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 8, tileAnimation: false });  // 타일 페이드인은 저사양 폰에서 끊김의 주범
     let radiusCircle = null, myOv = null, pinOv = null;
     const popupOv = new kakao.maps.CustomOverlay({ yAnchor: 1.62, zIndex: 30 });
