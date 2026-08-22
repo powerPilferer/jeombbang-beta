@@ -462,6 +462,18 @@
       color: var(--muted); font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; border-top: 1px solid var(--line); text-align: left; }
     .etc-row b { color: var(--ink); font-weight: 700; }
     .etc-row.danger { color: #e8756a; }
+    .etc-row:disabled { cursor: default; }
+    /* 알람 토글 */
+    .sw { position: relative; flex: none; width: 46px; height: 27px; border-radius: 999px;
+      background: var(--chip); transition: background .18s ease; }
+    .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%;
+      background: #8e8e93; transition: transform .18s cubic-bezier(.3,1.4,.5,1), background .18s ease; }
+    .sw.on { background: var(--beige); }
+    .sw.on::after { transform: translateX(19px); background: var(--beige-ink); }
+    .sw.busy { opacity: .45; }
+    .sw.na { width: auto; height: auto; background: none; color: var(--muted); font-size: 12.5px; font-weight: 700; }
+    .sw.na::after { display: none; }
+    @media (prefers-reduced-motion: reduce) { .sw, .sw::after { transition: none; } }
 
     /* ── 지도 말풍선 ── */
     .kpopup { position: relative; width: 176px; padding: 11px 13px 10px; background: #fff; border-radius: 13px;
@@ -1970,7 +1982,7 @@
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
           <button type="button" class="etc-row" id="nick-row">닉네임 <b>${esc(me.nickname || '')}</b></button>
-          <button type="button" class="etc-row" id="push-row"><span><span class="emo" style="font-size:14px;vertical-align:-2px;margin-right:7px">🔔</span>알람 설정</span> <b id="push-state">확인 중…</b></button>
+          <button type="button" class="etc-row" id="push-row" role="switch" aria-checked="false"><span><span class="emo" style="font-size:14px;vertical-align:-2px;margin-right:7px">🔔</span>알람 설정</span><span class="sw busy" id="push-sw"></span></button>
           <button type="button" class="etc-row danger" id="settings-logout">로그아웃</button>
         </div>`;
       $('set-back').onclick = () => renderHome();
@@ -1993,18 +2005,24 @@
         $('nick-modal').classList.remove('hidden');
         setTimeout(() => $('nick-input').focus(), 60);
       };
+      // 알람 토글 — 'on' | 'off' | 'busy' | 'na'
+      const setSw = state => {
+        const sw = $('push-sw'), row = $('push-row');
+        sw.className = 'sw' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : state === 'na' ? ' na' : '');
+        sw.textContent = state === 'na' ? '미지원' : '';
+        row.setAttribute('aria-checked', String(state === 'on'));
+        row.disabled = (state === 'busy' || state === 'na');
+      };
       (async () => {
-        const st = $('push-state');
-        if (!pushSupported()) { st.textContent = '미지원'; return; }
-        st.textContent = (await getPushSub()) ? '켜짐' : '꺼짐';
+        if (!pushSupported()) { setSw('na'); return; }
+        setSw((await getPushSub()) ? 'on' : 'off');
       })();
       $('push-row').onclick = async () => {
-        const st = $('push-state');
         const sub = await getPushSub();
-        if (sub) { await disablePush(); st.textContent = '꺼짐'; return; }
-        st.textContent = '연결 중…';
+        if (sub) { setSw('busy'); await disablePush(); setSw('off'); return; }
+        setSw('busy');
         const r = await enablePush();
-        st.textContent = r.ok ? '켜짐' : '꺼짐';
+        setSw(r.ok ? 'on' : 'off');
         if (!r.ok) alert(r.msg);
       };
       $('settings-logout').onclick = doLogout;
