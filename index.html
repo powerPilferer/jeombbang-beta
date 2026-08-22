@@ -395,22 +395,29 @@
     .visit-btn { margin-top: 16px; width: 100%; padding: 13px; border: 1.5px solid rgba(236,225,203,.55); border-radius: 999px;
       color: var(--beige); background: none; font-weight: 800; cursor: pointer; font-family: inherit; font-size: 14px; transition: .15s; }
     .visit-btn:active { transform: scale(.985); }
-    /* 찜 — 다녀왔어요 옆에 나란히 */
-    .visit-row { display: flex; gap: 8px; margin-top: 16px; }
-    .visit-row .visit-btn { margin-top: 0; flex: 1; }
-    .wish-btn { flex: none; width: 48px; border: 1.5px solid rgba(236,225,203,.55); border-radius: 999px; background: none;
-      color: var(--beige); font-size: 18px; cursor: pointer; display: grid; place-items: center; transition: .15s; }
-    .wish-btn.on { background: var(--beige); color: var(--beige-ink); border-color: var(--beige); }
-    .wish-btn:active { transform: scale(.93); }
+    /* 찜 — 히어로 우상단 하트 */
+    .hero-kicker .kr { display: flex; align-items: center; gap: 10px; }
+    .wish-btn { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(236,225,203,.13);
+      display: grid; place-items: center; cursor: pointer; transition: transform .12s; }
+    .wish-btn svg { width: 18px; height: 18px; display: block; }
+    .wish-btn .hf { fill: none; }                  /* 빈 하트 */
+    .wish-btn .hl { fill: none; }
+    .wish-btn.on .hf { fill: #e8565e; }            /* 찜 */
+    .wish-btn.on .hl { fill: #ffb3b7; }
+    .wish-btn:active { transform: scale(.88); }
+    .wish-btn:disabled { opacity: .5; }
     /* 가보고 싶은 곳 카드 */
-    .wcard { cursor: default; }
-    .wcard .vstars .star:not(.on):not(.half) { color: #5a5a5e; }   /* 빈 별은 더 어둡게 — '아직 안 갔다'가 보이게 */
+    .sec-title .sec-ic { width: 16px; height: 16px; display: block; }
+    .sec-title .sec-ic .hf { fill: #e8565e; } .sec-title .sec-ic .hl { fill: #ffb3b7; }
+    .wcard { cursor: default; position: relative; }
+    .wcard .vstars .star:not(.on):not(.half) { color: #5a5a5e; }
     .wcard .wmeta { color: var(--muted); font-size: 11.5px; }
-    .wcard .wlinks { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-    .wcard .wlinks a { padding: 7px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 700; text-decoration: none; background: var(--chip); color: var(--ink); }
-    .wcard .wlinks a.kakao { background: #fae100; color: #191919; }
-    .wcard .wdel { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 7px 4px; font-family: inherit; }
-    .wcard .wform { display: none; gap: 8px; margin-top: 8px; }
+    .wcard .wdel { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border: 0; border-radius: 50%;
+      background: none; color: #6e6e73; cursor: pointer; display: grid; place-items: center; }
+    .wcard .wdel svg { width: 12px; height: 12px; display: block; }
+    .wcard .wdel:active { background: var(--chip); }
+    .wcard .links { margin-top: 10px; }
+    .wcard .wform { display: none; gap: 8px; margin-top: 10px; }
     .wcard .wform.on { display: grid; }
     .wcard .wform textarea { width: 100%; min-height: 54px; padding: 10px 12px; border: 0; border-radius: 11px; background: #1c1c1e; color: var(--ink); font-family: inherit; font-size: 13px; resize: none; }
     .wcard .wform .vsave { width: 100%; }
@@ -678,7 +685,7 @@
       <div class="no-more" id="no-more"></div>
       <div class="peek" id="peek"></div>
       <section class="card hero" id="hero">
-        <div class="hero-kicker"><span class="badge" id="hero-badge"></span><small id="hero-where"></small></div>
+        <div class="hero-kicker"><span class="badge" id="hero-badge"></span><span class="kr"><small id="hero-where"></small><button type="button" class="wish-btn" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="false"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="3" width="4" height="1"/><rect x="10" y="3" width="4" height="1"/><rect x="1" y="4" width="1" height="4"/><rect x="6" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="4"/><rect x="7" y="5" width="2" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="13" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="7" y="13" width="2" height="1"/></g><g class="hf"><rect x="2" y="4" width="4" height="1"/><rect x="10" y="4" width="4" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="9" y="5" width="5" height="1"/><rect x="2" y="6" width="12" height="2"/><rect x="3" y="8" width="10" height="1"/><rect x="4" y="9" width="8" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="7" y="12" width="2" height="1"/></g><rect class="hl" x="3" y="5" width="1" height="1"/></svg></button></span></div>
         <div class="hero-title"><h2 class="px" id="hero-name"></h2><span class="cat-ic" id="hero-ic"></span></div>
         <p class="menu-line" id="hero-menu"></p>
         <div class="facts" id="hero-facts"></div>
@@ -688,7 +695,7 @@
     </div>
     <section class="card hidden" id="no-pick"></section>
     <section class="card detail hidden" id="detail"></section>
-    <div class="sec-title hidden" id="wish-title"><span class="emo">🔖</span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
+    <div class="sec-title hidden" id="wish-title"><span class="sec-ic"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="3" width="4" height="1"/><rect x="10" y="3" width="4" height="1"/><rect x="1" y="4" width="1" height="4"/><rect x="6" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="4"/><rect x="7" y="5" width="2" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="13" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="7" y="13" width="2" height="1"/></g><g class="hf"><rect x="2" y="4" width="4" height="1"/><rect x="10" y="4" width="4" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="9" y="5" width="5" height="1"/><rect x="2" y="6" width="12" height="2"/><rect x="3" y="8" width="10" height="1"/><rect x="4" y="9" width="8" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="7" y="12" width="2" height="1"/></g><rect class="hl" x="3" y="5" width="1" height="1"/></svg></span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
     <div class="list hidden" id="wish-list"></div>
     <div class="sec-title hidden" id="visited-title"><span class="emo">🍚</span> 다녀온 곳 <span class="n" id="visited-count">0</span></div>
     <div class="list hidden" id="visited-list"></div>
@@ -1186,6 +1193,10 @@
       const label = SLOTS[currentSlotKey].label;
       $('hero-badge').innerHTML = `<span class="emo">🍚</span> 오늘 ${label} 뭐먹정`;
       $('hero-where').textContent = `${spot.name} · ${spot.radius_label}`;
+      const wb = $('wish-btn');
+      wb.classList.toggle('hidden', !!myReview(p.id));   // 이미 다녀온 집은 찜 대상이 아님
+      wb.classList.toggle('on', isWished(p.id));
+      wb.setAttribute('aria-pressed', String(isWished(p.id)));
       $('hero-name').textContent = p.name;
       $('hero-ic').innerHTML = catIcon(p.category);
       $('hero-menu').textContent = `${p.menu} · ${(p.price || 0).toLocaleString()}원`;
@@ -1241,10 +1252,7 @@
             const who = nickById[r.user_id] || '익명';
             return `<div class="visit"><span class="who-chip${mine ? ' me' : ''}">${esc(who)}</span><b>${starText(r.rate)}</b>${r.comment ? ' · ' + esc(r.comment) : ''}<small>${r.visited_on}</small></div>`;
           }).join('')}</div>` : ''}
-        <div class="visit-row">
-          <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 리뷰 남기기</button>
-          ${myReview(p.id) ? '' : `<button type="button" class="wish-btn${isWished(p.id) ? ' on' : ''}" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="${isWished(p.id)}">${isWished(p.id) ? '🔖' : '🏷'}</button>`}
-        </div>
+        <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 리뷰 남기기</button>
         <div class="vform" id="visit-form">
           <div class="star-row">
             ${[1, 2, 3, 4, 5].map(v => `<button type="button" class="star" data-v="${v}">★</button>`).join('')}
@@ -1289,15 +1297,7 @@
     function wireReviewForm(p) {
       const form = $('visit-form');
       $('visit-btn').addEventListener('click', () => form.classList.toggle('on'));
-      const wb = $('wish-btn');
-      if (wb) wb.addEventListener('click', async () => {
-        wb.disabled = true;
-        await toggleWish(p.id);
-        wb.classList.toggle('on', isWished(p.id));
-        wb.textContent = isWished(p.id) ? '🔖' : '🏷';
-        wb.setAttribute('aria-pressed', String(isWished(p.id)));
-        wb.disabled = false;
-      });
+
       const ta = $('visit-comment');
       ta.addEventListener('input', () => { $('char-count').textContent = `${ta.value.length} / 50`; });
       let rate = 0;
@@ -1322,6 +1322,8 @@
 
     // ── 다녀온 곳 (별 재탭 = 즉시 반영, 취소는 흐림 유지 → 다음 진입 때 제외)
     // ── 가보고 싶은 곳 (찜) — 고르는 목록이 아니다: 지도로 가거나, 다녀와서 별을 누르거나
+    const mm = m => `${String(Math.floor((m % 1440) / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    const shortHours = p => (p.open_min != null && p.close_min != null) ? ` · ${mm(p.open_min)}–${mm(p.close_min)}` : '';
     function renderWishes() {
       const title = $('wish-title'), wrap = $('wish-list');
       const items = wishes.map(id => places.find(p => p.id === id)).filter(Boolean);
@@ -1335,15 +1337,15 @@
         return `<div class="vcard wcard" data-i="${i}">
           <div class="vstars">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="star" data-v="${n}">★</button>`).join('')}</div>
           <span class="nm">${esc(p.name)}</span>
-          <span class="wmeta">${esc(p.menu)} ${(p.price || 0).toLocaleString()}원 · ${esc(p.hours || '')}${walk}</span>
-          <div class="wlinks">
-            <a class="kakao" href="https://map.kakao.com/link/map/${encodeURIComponent(p.name)},${p.lat},${p.lng}" target="_blank" rel="noopener">카카오지도</a>
-            <a href="https://map.naver.com/p/search/${encodeURIComponent(p.name)}" target="_blank" rel="noopener">네이버지도</a>
-            <button type="button" class="wdel">빼기</button>
+          <span class="wmeta">${esc(p.menu)} ${(p.price || 0).toLocaleString()}원${shortHours(p)}${walk}</span>
+          <button type="button" class="wdel" aria-label="목록에서 빼기"><svg viewBox="0 0 12 12" fill="currentColor" shape-rendering="crispEdges"><rect x="1" y="1" width="2" height="2"/><rect x="9" y="1" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="7" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="3" y="7" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/></svg></button>
+          <div class="links">
+            <a class="kakao" href="https://map.kakao.com/link/map/${encodeURIComponent(p.name)},${p.lat},${p.lng}" target="_blank" rel="noopener">🗺 카카오지도</a>
+            <a class="naver" href="https://map.naver.com/p/search/${encodeURIComponent(p.name)}" target="_blank" rel="noopener">네이버지도</a>
           </div>
           <div class="wform">
             <textarea class="wcomment" placeholder="짧은 감상평 (선택)" maxlength="50"></textarea>
-            <button type="button" class="vsave">다녀온 곳으로 기록</button>
+            <button type="button" class="vsave">기록하기</button>
           </div>
         </div>`;
       }).join('');
@@ -1359,7 +1361,7 @@
           btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
           const rec = { place_id: p.id, user_id: me.id, rate, comment: card.querySelector('.wcomment').value.trim().slice(0, 50), visited_on: todayStr(), updated_at: new Date().toISOString() };
           const { error } = await sb.from('reviews').upsert(rec, { onConflict: 'place_id,user_id' });
-          if (error) { alert('저장 실패: ' + error.message); btn.disabled = false; btn.textContent = '다녀온 곳으로 기록'; return; }
+          if (error) { alert('저장 실패: ' + error.message); btn.disabled = false; btn.textContent = '기록하기'; return; }
           await dropWish(p.id);
           await loadReviews();
           renderWishes();
@@ -1557,6 +1559,14 @@
     }
     heroEl.addEventListener('pointerup', endDrag);
     heroEl.addEventListener('pointercancel', endDrag);
+    $('wish-btn').addEventListener('click', async () => {
+      const p = currentPlace(); if (!p) return;
+      const wb = $('wish-btn'); wb.disabled = true;
+      await toggleWish(p.id);
+      wb.classList.toggle('on', isWished(p.id));
+      wb.setAttribute('aria-pressed', String(isWished(p.id)));
+      wb.disabled = false;
+    });
     $('go-map').addEventListener('click', () => {
       const p = currentPlace();
       if (!p) return;
