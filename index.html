@@ -400,17 +400,20 @@
     .visit-btn:active { transform: scale(.985); }
     /* 찜 — 히어로 우상단 하트 */
     .hero-kicker .kr { display: flex; align-items: center; gap: 10px; }
-    .wish-btn { flex: none; height: 34px; padding: 0 13px 0 10px; border: 0; border-radius: 999px; background: rgba(236,225,203,.13);
-      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: transform .12s, background .15s;
-      color: var(--beige); font-family: inherit; font-size: 12.5px; font-weight: 800; }
-    .wish-btn.on { background: rgba(236,225,203,.22); }
+    /* 찜 — 글자 왼쪽, 책갈피 오른쪽. 배경 없이 흰색 라인, 저장되면 채워짐 */
+    .wish-btn { flex: none; height: 34px; padding: 0 2px; border: 0; background: none;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: transform .12s;
+      color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 700; }
+    .wish-btn svg { order: 2; }
+    .wish-btn .wl { order: 1; }
     .wish-btn .wl::after { content: '저장'; }
     .wish-btn.on .wl::after { content: '저장됨'; }
+    .wish-btn svg > g:first-child { fill: #fff; }          /* 외곽선 흰색 */
     .wish-btn svg { width: 18px; height: 18px; display: block; }
-    .wish-btn .hf { fill: none; }                  /* 빈 하트 */
+    .wish-btn .hf { fill: none; }                  /* 라인만 */
     .wish-btn .hl { fill: none; }
-    .wish-btn.on .hf { fill: var(--beige); }       /* 저장됨 */
-    .wish-btn.on .hl { fill: #fff8ea; }
+    .wish-btn.on .hf { fill: #fff; }               /* 저장됨 — 흰색으로 채움 */
+    .wish-btn.on .hl { fill: none; }
     .wish-btn:active { transform: scale(.88); }
     .wish-btn:disabled { opacity: .5; }
     /* 가보고 싶은 곳 카드 */
