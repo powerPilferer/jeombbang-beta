@@ -281,7 +281,11 @@
     /* 다음 카드가 오른쪽에 늘 살짝 보이게 — "옆으로 밀 수 있다"를 형태로 알림.
        카드를 그만큼 좁혀야 폰 화면에서 실제로 보인다 (여백만으론 8px밖에 안 나옴) */
     .hero-wrap { transition: margin .22s cubic-bezier(.3,.7,.4,1); }
-    .hero-wrap.swipeable { margin: 0 17px; }   /* 여백을 절반씩 나눠 첫 카드와 같은 폭 유지 — 넘겨도 카드 크기가 안 변한다 */
+    /* 여백 총량은 34px로 고정(폭 불변) — 어디에 두느냐만 바뀐다.
+       첫 카드는 왼쪽이 지도와 정렬, 마지막 카드는 오른쪽이 지도와 정렬 */
+    .hero-wrap.e-first { margin-right: 34px; }
+    .hero-wrap.e-mid   { margin: 0 17px; }
+    .hero-wrap.e-last  { margin-left: 34px; }
     .hero-edge { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1;
       border-radius: 20px; background: var(--card); pointer-events: none; transition: opacity .18s; }
     .hero-edge.r { left: calc(100% + 10px); }
@@ -1249,7 +1253,11 @@
       const more = hasNextView(), prev = slotView > 0;
       $('hero-edge').classList.toggle('hidden', !more);
       $('hero-edge-l').classList.toggle('hidden', !prev);
-      $('hero-wrap').classList.toggle('swipeable', more || prev);
+      const hw = $('hero-wrap');
+      hw.classList.remove('e-first', 'e-mid', 'e-last');
+      if (more && prev) hw.classList.add('e-mid');
+      else if (more) hw.classList.add('e-first');
+      else if (prev) hw.classList.add('e-last');
       const hint = $('swipe-hint');
       const hintTxt = left > 0 ? `옆으로 밀어서 다른 곳 보기 · ${left}번 남음`
         : revealedPlaces.length > 1 ? `옆으로 밀어서 ${revealedPlaces.length}곳 비교하기` : '';
