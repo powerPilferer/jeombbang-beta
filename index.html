@@ -277,9 +277,9 @@
     .push-cta:active { transform: scale(.97); }
     .push-cap { display: none; margin: 10px 0 0; color: #7d7d84; font-size: 11.5px; font-weight: 600; }
     .push-cta:not(.hidden) + .push-cap { display: block; }
-    .hero-wrap { position: relative; }
+    .hero-wrap { position: relative; min-width: 0; width: 100%; }   /* 그리드 칸이 트랙 내용물 폭으로 늘어나지 않게 */
     /* 캐러셀: 카드들이 실제로 나란히 놓이고 트랙만 움직인다. 카드 폭 = 지도 폭, 이웃 카드는 화면 끝에 살짝 걸친다 */
-    .hero-track { display: flex; gap: 12px; will-change: transform; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+    .hero-track { display: flex; gap: 12px; width: 100%; will-change: transform; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
     .hero-track.animating { transition: transform .26s cubic-bezier(.3,.7,.4,1); }
     .hero-track.dragging { transition: none; }
     .hero-track > .hero { flex: none; width: 100%; position: relative; z-index: 2; }
