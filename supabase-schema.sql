@@ -134,3 +134,6 @@ alter table public.wishes enable row level security;
 create policy "내 찜 읽기" on public.wishes for select using (auth.uid() = user_id);
 create policy "내 찜 추가" on public.wishes for insert with check (auth.uid() = user_id);
 create policy "내 찜 삭제" on public.wishes for delete using (auth.uid() = user_id);
+
+-- 같은 끼니에 같은 집이 두 번 저장되는 것 방지 (두 기기가 동시에 열려 있을 때 발생)
+create unique index picks_uniq on public.picks (user_id, pick_date, slot, place_id);

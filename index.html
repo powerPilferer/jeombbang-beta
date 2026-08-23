@@ -1165,7 +1165,10 @@
         sb.from('picks').delete().in('id', badRows.map(b => b.id)).then(() => {});
         todayPicks = todayPicks.filter(k => !badRows.includes(k));
       }
-      revealedPlaces = shownRows.map(k => places.find(p => p.id === k.place_id)).filter(Boolean);
+      // 두 기기가 동시에 열려 있으면 같은 집이 두 번 저장될 수 있다 — 화면에서도 한 번만
+      const seenIds = new Set();
+      revealedPlaces = shownRows.map(k => places.find(p => p.id === k.place_id))
+        .filter(p => p && !seenIds.has(p.id) && seenIds.add(p.id));
       if (!revealedPlaces.length) {
         if (!ranked.length) {
           renderExploring(spot, currentSlotKey);
