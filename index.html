@@ -280,10 +280,13 @@
     .hero-wrap { position: relative; }
     /* 다음 카드가 오른쪽에 늘 살짝 보이게 — "옆으로 밀 수 있다"를 형태로 알림.
        카드를 그만큼 좁혀야 폰 화면에서 실제로 보인다 (여백만으론 8px밖에 안 나옴) */
-    .hero-wrap { transition: margin-right .22s cubic-bezier(.3,.7,.4,1); }
+    .hero-wrap { transition: margin .22s cubic-bezier(.3,.7,.4,1); }
     .hero-wrap.has-next { margin-right: 34px; }
-    .hero-edge { position: absolute; top: 0; bottom: 0; left: calc(100% + 12px); width: 100%; z-index: 1;
+    .hero-wrap.has-prev { margin-left: 34px; }
+    .hero-edge { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1;
       border-radius: 20px; background: var(--card); pointer-events: none; transition: opacity .18s; }
+    .hero-edge.r { left: calc(100% + 12px); }
+    .hero-edge.l { right: calc(100% + 12px); }
     .hero-wrap.dragging .hero-edge, .hero-edge.hidden { opacity: 0; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
@@ -696,7 +699,8 @@
     </section>
     <div class="hero-wrap hidden" id="hero-wrap">
       <div class="no-more" id="no-more"></div>
-      <div class="hero-edge hidden" id="hero-edge"></div>
+      <div class="hero-edge l hidden" id="hero-edge-l"></div>
+      <div class="hero-edge r hidden" id="hero-edge"></div>
       <div class="peek" id="peek"></div>
       <section class="card hero" id="hero">
         <div class="hero-kicker"><span class="badge" id="hero-badge"></span><span class="kr"><button type="button" class="wish-btn" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="false"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="1" width="12" height="1"/><rect x="2" y="2" width="1" height="12"/><rect x="13" y="2" width="1" height="12"/><rect x="2" y="14" width="2" height="1"/><rect x="12" y="14" width="2" height="1"/><rect x="7" y="10" width="2" height="1"/><rect x="6" y="11" width="1" height="1"/><rect x="9" y="11" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/></g><g class="hf"><rect x="3" y="2" width="10" height="8"/><rect x="3" y="10" width="4" height="1"/><rect x="9" y="10" width="4" height="1"/><rect x="3" y="11" width="3" height="1"/><rect x="10" y="11" width="3" height="1"/><rect x="3" y="12" width="2" height="1"/><rect x="11" y="12" width="2" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/></g><rect class="hl" x="4" y="3" width="1" height="1"/></svg></button></span></div>
@@ -1242,9 +1246,12 @@
       // 스와이프 힌트
       const canReveal = revealedPlaces.length < 3 && candQueue.length > 0;
       const left = canReveal ? 3 - revealedPlaces.length : 0;
-      const more = hasNextView();
+      // 첫 카드는 오른쪽만, 가운데는 양쪽, 마지막은 왼쪽만 — 어디쯤 왔는지가 형태로 보이게
+      const more = hasNextView(), prev = slotView > 0;
       $('hero-edge').classList.toggle('hidden', !more);
+      $('hero-edge-l').classList.toggle('hidden', !prev);
       $('hero-wrap').classList.toggle('has-next', more);
+      $('hero-wrap').classList.toggle('has-prev', prev);
       const hint = $('swipe-hint');
       const hintTxt = left > 0 ? `옆으로 밀어서 다른 곳 보기 · ${left}번 남음`
         : revealedPlaces.length > 1 ? `옆으로 밀어서 ${revealedPlaces.length}곳 비교하기` : '';
