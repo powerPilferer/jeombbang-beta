@@ -58,6 +58,9 @@
     body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--ink); background: var(--paper); }
     button, input { font: inherit; }
     .hidden { display: none !important; }
+    /* 아이폰식 가장자리 스와이프 뒤로가기 */
+    .edge-drag { transition: none !important; }
+    .edge-snap { transition: transform .2s cubic-bezier(.3,.7,.4,1); }
 
     /* ── 모바일 레이아웃: 탑바 + 지도 + 콘텐츠 ── */
     .topbar { position: sticky; top: 0; z-index: 900;
@@ -278,6 +281,13 @@
     .push-cap { display: none; margin: 10px 0 0; color: #7d7d84; font-size: 11.5px; font-weight: 600; }
     .push-cta:not(.hidden) + .push-cap { display: block; }
     .hero-wrap { position: relative; }
+    /* 다음 카드가 오른쪽에 늘 살짝 보이게 — "옆으로 밀 수 있다"를 형태로 알림.
+       카드를 그만큼 좁혀야 폰 화면에서 실제로 보인다 (여백만으론 8px밖에 안 나옴) */
+    .hero-wrap { transition: margin-right .22s cubic-bezier(.3,.7,.4,1); }
+    .hero-wrap.has-next { margin-right: 34px; }
+    .hero-edge { position: absolute; top: 0; bottom: 0; left: calc(100% + 12px); width: 100%; z-index: 1;
+      border-radius: 20px; background: var(--card); pointer-events: none; transition: opacity .18s; }
+    .hero-wrap.dragging .hero-edge, .hero-edge.hidden { opacity: 0; }
     .hero { position: relative; z-index: 2; touch-action: pan-y; cursor: grab; will-change: transform; user-select: none; -webkit-user-select: none; }
     .hero.dragging { transition: none; }
     .hero.animating { transition: transform .22s cubic-bezier(.3,.7,.4,1), opacity .22s; }
@@ -406,13 +416,13 @@
     .wish-btn svg { width: 18px; height: 18px; display: block; }
     .wish-btn .hf { fill: none; }                  /* 빈 하트 */
     .wish-btn .hl { fill: none; }
-    .wish-btn.on .hf { fill: #e8565e; }            /* 찜 */
-    .wish-btn.on .hl { fill: #ffb3b7; }
+    .wish-btn.on .hf { fill: var(--beige); }       /* 저장됨 */
+    .wish-btn.on .hl { fill: #fff8ea; }
     .wish-btn:active { transform: scale(.88); }
     .wish-btn:disabled { opacity: .5; }
     /* 가보고 싶은 곳 카드 */
     .sec-title .sec-ic { width: 16px; height: 16px; display: block; }
-    .sec-title .sec-ic .hf { fill: #e8565e; } .sec-title .sec-ic .hl { fill: #ffb3b7; }   /* 섹션 제목 하트는 빨강 — 카드만 무채색 */
+    .sec-title .sec-ic .hf { fill: var(--beige); } .sec-title .sec-ic .hl { fill: #fff8ea; }   /* 섹션 제목 책갈피는 베이지 — 카드만 무채색 */
     .wcard { cursor: default; position: relative; }
     .wcard .vstars .star:not(.on):not(.half) { color: #5a5a5e; }
     .wcard .wmeta { color: var(--muted); font-size: 11.5px; }
@@ -689,9 +699,10 @@
     </section>
     <div class="hero-wrap hidden" id="hero-wrap">
       <div class="no-more" id="no-more"></div>
+      <div class="hero-edge hidden" id="hero-edge"></div>
       <div class="peek" id="peek"></div>
       <section class="card hero" id="hero">
-        <div class="hero-kicker"><span class="badge" id="hero-badge"></span><span class="kr"><button type="button" class="wish-btn" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="false"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="3" width="4" height="1"/><rect x="10" y="3" width="4" height="1"/><rect x="1" y="4" width="1" height="4"/><rect x="6" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="4"/><rect x="7" y="5" width="2" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="13" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="7" y="13" width="2" height="1"/></g><g class="hf"><rect x="2" y="4" width="4" height="1"/><rect x="10" y="4" width="4" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="9" y="5" width="5" height="1"/><rect x="2" y="6" width="12" height="2"/><rect x="3" y="8" width="10" height="1"/><rect x="4" y="9" width="8" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="7" y="12" width="2" height="1"/></g><rect class="hl" x="3" y="5" width="1" height="1"/></svg></button></span></div>
+        <div class="hero-kicker"><span class="badge" id="hero-badge"></span><span class="kr"><button type="button" class="wish-btn" id="wish-btn" aria-label="가보고 싶어요" aria-pressed="false"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="1" width="12" height="1"/><rect x="2" y="2" width="1" height="12"/><rect x="13" y="2" width="1" height="12"/><rect x="2" y="14" width="2" height="1"/><rect x="12" y="14" width="2" height="1"/><rect x="7" y="10" width="2" height="1"/><rect x="6" y="11" width="1" height="1"/><rect x="9" y="11" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/></g><g class="hf"><rect x="3" y="2" width="10" height="8"/><rect x="3" y="10" width="4" height="1"/><rect x="9" y="10" width="4" height="1"/><rect x="3" y="11" width="3" height="1"/><rect x="10" y="11" width="3" height="1"/><rect x="3" y="12" width="2" height="1"/><rect x="11" y="12" width="2" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/></g><rect class="hl" x="4" y="3" width="1" height="1"/></svg></button></span></div>
         <div class="hero-title"><h2 class="px" id="hero-name"></h2><span class="cat-ic" id="hero-ic"></span></div>
         <p class="menu-line" id="hero-menu"></p>
         <div class="facts" id="hero-facts"></div>
@@ -701,7 +712,7 @@
     </div>
     <section class="card hidden" id="no-pick"></section>
     <section class="card detail hidden" id="detail"></section>
-    <div class="sec-title hidden" id="wish-title"><span class="sec-ic"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="3" width="4" height="1"/><rect x="10" y="3" width="4" height="1"/><rect x="1" y="4" width="1" height="4"/><rect x="6" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="4"/><rect x="7" y="5" width="2" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="13" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="7" y="13" width="2" height="1"/></g><g class="hf"><rect x="2" y="4" width="4" height="1"/><rect x="10" y="4" width="4" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="9" y="5" width="5" height="1"/><rect x="2" y="6" width="12" height="2"/><rect x="3" y="8" width="10" height="1"/><rect x="4" y="9" width="8" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="7" y="12" width="2" height="1"/></g><rect class="hl" x="3" y="5" width="1" height="1"/></svg></span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
+    <div class="sec-title hidden" id="wish-title"><span class="sec-ic"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="1" width="12" height="1"/><rect x="2" y="2" width="1" height="12"/><rect x="13" y="2" width="1" height="12"/><rect x="2" y="14" width="2" height="1"/><rect x="12" y="14" width="2" height="1"/><rect x="7" y="10" width="2" height="1"/><rect x="6" y="11" width="1" height="1"/><rect x="9" y="11" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/></g><g class="hf"><rect x="3" y="2" width="10" height="8"/><rect x="3" y="10" width="4" height="1"/><rect x="9" y="10" width="4" height="1"/><rect x="3" y="11" width="3" height="1"/><rect x="10" y="11" width="3" height="1"/><rect x="3" y="12" width="2" height="1"/><rect x="11" y="12" width="2" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/></g><rect class="hl" x="4" y="3" width="1" height="1"/></svg></span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
     <div class="list hidden" id="wish-list"></div>
     <div class="sec-title hidden" id="visited-title"><span class="emo">🍚</span> 나의 맛지도 <span class="n" id="visited-count">0</span></div>
     <div class="list hidden" id="visited-list"></div>
@@ -1215,10 +1226,8 @@
       if (!p) return;
       const label = SLOTS[currentSlotKey].label;
       $('hero-badge').innerHTML = `<span class="emo">🍚</span> 오늘 ${label} 뭐먹정`;
-      const wb = $('wish-btn');
-      wb.classList.toggle('hidden', !!myReview(p.id));   // 이미 다녀온 집은 찜 대상이 아님
-      wb.classList.toggle('on', isWished(p.id));
-      wb.setAttribute('aria-pressed', String(isWished(p.id)));
+      $('wish-btn').classList.toggle('hidden', !!myReview(p.id));   // 이미 다녀온 집은 찜 대상이 아님
+      syncWishBtn();
       $('hero-name').textContent = p.name;
       $('hero-ic').innerHTML = catIcon(p.category);
       $('hero-menu').textContent = `${p.menu} · ${(p.price || 0).toLocaleString()}원`;
@@ -1233,6 +1242,9 @@
       // 스와이프 힌트
       const canReveal = revealedPlaces.length < 3 && candQueue.length > 0;
       const left = canReveal ? 3 - revealedPlaces.length : 0;
+      const more = hasNextView();
+      $('hero-edge').classList.toggle('hidden', !more);
+      $('hero-wrap').classList.toggle('has-next', more);
       const hint = $('swipe-hint');
       const hintTxt = left > 0 ? `옆으로 밀어서 다른 곳 보기 · ${left}번 남음`
         : revealedPlaces.length > 1 ? `옆으로 밀어서 ${revealedPlaces.length}곳 비교하기` : '';
@@ -1541,7 +1553,10 @@
       const dy = e.clientY - sy;
       if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
         horiz = Math.abs(dx) >= Math.abs(dy);
-        if (horiz) try { heroEl.setPointerCapture(e.pointerId); } catch (_) {}   // 가로 확정 후에만 캡처 — 클릭 보존
+        if (horiz) {
+          try { heroEl.setPointerCapture(e.pointerId); } catch (_) {}   // 가로 확정 후에만 캡처 — 클릭 보존
+          $('hero-wrap').classList.add('dragging');
+        }
       }
       if (Math.abs(dx) > 10) dragMoved = true;
       if (horiz) {
@@ -1566,6 +1581,7 @@
       if (!dragging) return;
       dragging = false;
       heroEl.classList.remove('dragging');
+      $('hero-wrap').classList.remove('dragging');
       const fwd = dx < 0;
       const canGo = fwd ? hasNextView() : slotView > 0;
       if (horiz && Math.abs(dx) > 70 && canGo) slideTo(fwd ? 1 : -1, true);
@@ -1579,14 +1595,59 @@
         else noMore.style.opacity = 0;
       }
     }
+    // ── 왼쪽 가장자리를 오른쪽으로 밀면 뒤로 (아이폰 기본 제스처와 같은 감각)
+    (() => {
+      const EDGE = 26, GO = 70;
+      let view = null, sx = 0, sy = 0, dx = 0, horiz = null;
+      const backTarget = () => {
+        if (document.body.classList.contains('settings-mode')) return { el: $('settings-view'), run: () => renderHome() };
+        if (document.body.classList.contains('setup-mode')) {
+          if (wizIdx > 0 || wizMode === 'edit' || wizMode === 'add') return { el: $('wiz-view'), run: () => wizBack() };
+        }
+        return null;
+      };
+      document.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return;
+        const tt = e.touches[0];
+        if (tt.clientX > EDGE) return;
+        if (e.target.closest('#map-wrap')) return;      // 지도 드래그와 겹치지 않게
+        const tgt = backTarget();
+        if (!tgt) return;
+        view = tgt; sx = tt.clientX; sy = tt.clientY; dx = 0; horiz = null;
+        view.el.classList.add('edge-drag');
+      }, { passive: true });
+      document.addEventListener('touchmove', e => {
+        if (!view) return;
+        const tt = e.touches[0];
+        dx = tt.clientX - sx;
+        const dy = tt.clientY - sy;
+        if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) horiz = Math.abs(dx) > Math.abs(dy);
+        if (!horiz) return;
+        view.el.style.transform = `translateX(${Math.max(0, dx)}px)`;
+        view.el.style.opacity = String(Math.max(.45, 1 - Math.max(0, dx) / 400));
+      }, { passive: true });
+      const endEdge = () => {
+        if (!view) return;
+        const v = view, went = horiz && dx > GO;
+        view = null;
+        v.el.classList.remove('edge-drag');
+        v.el.classList.add('edge-snap');
+        v.el.style.transform = went ? 'translateX(100%)' : 'translateX(0)';
+        setTimeout(() => {
+          v.el.classList.remove('edge-snap');
+          v.el.style.transform = ''; v.el.style.opacity = '';
+          if (went) v.run();
+        }, went ? 190 : 200);
+      };
+      document.addEventListener('touchend', endEdge, { passive: true });
+      document.addEventListener('touchcancel', endEdge, { passive: true });
+    })();
     heroEl.addEventListener('pointerup', endDrag);
     heroEl.addEventListener('pointercancel', endDrag);
     $('wish-btn').addEventListener('click', async () => {
       const p = currentPlace(); if (!p) return;
       const wb = $('wish-btn'); wb.disabled = true;
       await toggleWish(p.id);
-      wb.classList.toggle('on', isWished(p.id));
-      wb.setAttribute('aria-pressed', String(isWished(p.id)));
       wb.disabled = false;
     });
     $('go-map').addEventListener('click', () => {
@@ -2206,6 +2267,12 @@
       wishes = (r3.data || []).map(w => w.place_id);
     }
     const isWished = id => wishes.includes(id);
+    function syncWishBtn() {           // 목록에서 빼도 히어로 버튼이 같이 꺼져야 한다
+      const wb = $('wish-btn'), p = currentPlace();
+      if (!wb || !p) return;
+      wb.classList.toggle('on', isWished(p.id));
+      wb.setAttribute('aria-pressed', String(isWished(p.id)));
+    }
     async function toggleWish(placeId) {
       if (isWished(placeId)) {
         wishes = wishes.filter(id => id !== placeId);
@@ -2215,12 +2282,14 @@
         await sb.from('wishes').insert({ user_id: me.id, place_id: placeId });
       }
       renderWishes();
+      syncWishBtn();
     }
     // 별점이 남으면 찜은 끝난 것 — 어느 경로로 남기든 같게
     async function dropWish(placeId) {
       if (!isWished(placeId)) return;
       wishes = wishes.filter(id => id !== placeId);
       await sb.from('wishes').delete().eq('user_id', me.id).eq('place_id', placeId);
+      syncWishBtn();
     }
     const daysAgoStr = n => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
     async function loadPicks() {
