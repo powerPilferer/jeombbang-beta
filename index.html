@@ -996,9 +996,13 @@
     }
     function rankedCandidates(spot, slotKey, atTime) {
       const todayWd = new Date().getDay();
+      // 아침은 "알려주는 시각"이지 "먹는 시각"이 아니다 — 진짜 아침집이 모자라면 점심집으로 채운다.
+      // (야식은 반대: 그 시각에 닫혀 있으면 아예 못 가므로 넓히지 않는다)
+      const okSlot = p => (p.slots || []).includes(slotKey) ||
+        (slotKey === 'breakfast' && (p.slots || []).includes('lunch'));
       let cands = places.filter(p =>
         distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m &&
-        (p.slots || []).includes(slotKey) &&
+        okSlot(p) &&
         !(p.closed_days || []).includes(todayWd));   // 오늘 휴무인 집만 제외
       // 오늘 다른 끼니에서 이미 공개된 곳은 제외 (풀이 바닥나면 중복 허용)
       const otherSlotIds = new Set(todayPicks.filter(k => k.slot !== slotKey).map(k => k.place_id));
@@ -1014,7 +1018,8 @@
       const dSort = (a, b) => distM(spot.lat, spot.lng, a.lat, a.lng) - distM(spot.lat, spot.lng, b.lat, b.lng);
       // 공개 시각에 문 연 집을 같은 티어 안에서 앞으로 (브레이크타임 집도 밀면 볼 수 있음)
       const openRank = p => (atTime && !openAt(p, atTime)) ? 1 : 0;
-      const sortFn = (a, b) => (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
+      const slotRank = p => (p.slots || []).includes(slotKey) ? 0 : 1;   // 전담 집이 먼저
+      const sortFn = (a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
       const isNewbie = p => (p.created_at || '').slice(0, 10) === todayStr();
       const t0 = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
       for (const p of cands) {
@@ -1029,7 +1034,7 @@
         else if (recentPickIds.has(p.id)) t2.push(p);                  // 최근 3일 노출됐던 미방문
         else t1.push(p);                                               // 새 미방문
       }
-      t0.sort((a, b) => (openRank(a) - openRank(b)) || dSort(a, b)); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
+      t0.sort((a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || dSort(a, b)); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
       const seedStr = todayStr() + slotKey + me.id;
       const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
       const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
