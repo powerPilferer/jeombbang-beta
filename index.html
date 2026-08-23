@@ -198,7 +198,7 @@
     .wiz-back svg { display: block; width: 26px; height: 26px; image-rendering: pixelated; shape-rendering: crispEdges; }
     .wiz-back.hide { visibility: hidden; }
     /* 질문 */
-    .wiz h2 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.4; }
+    .wiz h2 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.35; letter-spacing: -.025em; }
     .wiz h2 .b { color: var(--beige); display: block; }
     .wiz-sub { margin: 16px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.65; letter-spacing: -.01em; }
     .wiz-body { margin-top: 44px; }
@@ -270,7 +270,7 @@
       color: var(--beige-ink); font-weight: 800; font-size: 12.5px; cursor: pointer; font-family: inherit; }
     .push-banner .pb-x { flex: none; border: 0; background: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 4px; }
     .locked { text-align: center; padding: 44px 20px; }
-    .locked h2 { margin: 18px 0 0; font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
+    .locked h2 { margin: 18px 0 0; font-size: 23px; font-weight: 800; line-height: 1.45; letter-spacing: -.02em; }
     .locked-sub { margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
     .push-cta { margin-top: 20px; padding: 12px 26px; border: 0; border-radius: 999px;
       background: var(--beige); color: var(--beige-ink); font-weight: 800; font-size: 13.5px; cursor: pointer; font-family: inherit; }
@@ -296,7 +296,7 @@
       background: rgba(236,225,203,.13); color: var(--beige); font-size: 12.5px; font-weight: 800; }
     .hero small { color: var(--muted); font-size: 12px; font-weight: 600; }
     .hero-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 8px; }
-    .hero h2 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.35; letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
+    .hero h2 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.3; letter-spacing: -.025em; word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
     .cat-ic { flex: none; width: 64px; height: 64px; display: block; }
     .cat-ic svg { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
     /* ── 카테고리 아이콘 모션 (모선) ── */
@@ -474,7 +474,7 @@
     body.settings-mode main { display: block; min-height: 100dvh;
       padding: calc(env(safe-area-inset-top) + 26px) 26px calc(env(safe-area-inset-bottom) + 26px); }
     #settings-view { display: flex; flex-direction: column; min-height: calc(100dvh - env(safe-area-inset-top) - 52px); }
-    #settings-view h2 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.4; }
+    #settings-view h2 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.35; letter-spacing: -.025em; }
     #settings-view h2 .b { color: var(--beige); display: block; }
     #settings-view .sub { margin: 14px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
     .slots { margin-top: 32px; display: grid; gap: 12px; }
@@ -685,7 +685,7 @@
     <div class="next-tease hidden" id="next-tease"></div>
     <section class="card locked hidden" id="locked">
       <div class="locked-emo"><span class="emo lg">🍚</span></div>
-      <h2 class="px" id="locked-title"></h2>
+      <h2 id="locked-title"></h2>
       <p class="locked-sub" id="locked-count"></p>
       <button type="button" class="push-cta hidden" id="push-cta">🔔 알람 켜기</button>
       <p class="push-cap">켜두면 정해지는 시각에 알람으로 알려드려요</p>
@@ -697,7 +697,7 @@
     <template id="hero-tpl">
       <section class="card hero">
         <div class="hero-kicker"><span class="badge hero-badge"></span><span class="kr"><button type="button" class="wish-btn" aria-label="가보고 싶어요" aria-pressed="false"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="1" width="12" height="1"/><rect x="2" y="2" width="1" height="12"/><rect x="13" y="2" width="1" height="12"/><rect x="2" y="14" width="2" height="1"/><rect x="12" y="14" width="2" height="1"/><rect x="7" y="10" width="2" height="1"/><rect x="6" y="11" width="1" height="1"/><rect x="9" y="11" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/></g><g class="hf"><rect x="3" y="2" width="10" height="8"/><rect x="3" y="10" width="4" height="1"/><rect x="9" y="10" width="4" height="1"/><rect x="3" y="11" width="3" height="1"/><rect x="10" y="11" width="3" height="1"/><rect x="3" y="12" width="2" height="1"/><rect x="11" y="12" width="2" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/></g><rect class="hl" x="4" y="3" width="1" height="1"/></svg><span class="wl"></span></button></span></div>
-        <div class="hero-title"><h2 class="px hero-name"></h2><span class="cat-ic hero-ic"></span></div>
+        <div class="hero-title"><h2 class="hero-name"></h2><span class="cat-ic hero-ic"></span></div>
         <p class="menu-line hero-menu"></p>
         <div class="facts hero-facts"></div>
         <button type="button" class="go-map">지도에서 보기</button>
@@ -1196,7 +1196,7 @@
       np.className = 'card locked';
       np.innerHTML = `
         <div class="locked-emo"><span class="emo lg seek">🔎</span></div>
-        <h2 class="px">점빵이가<br>이 동네를 발굴 중이에요</h2>
+        <h2>점빵이가<br>이 동네를 발굴 중이에요</h2>
         <p class="locked-sub">${subText || `준비되면 ${slotKey ? SLOTS[slotKey].label + ' ' : ''}추천을 채워둘게요`}</p>`;
       if (!subText) ensureExploreRequest(spot, slotKey || 'dinner');   // 연출이 아닐 때만 실제 요청 접수
       renderVisited();
@@ -1745,7 +1745,7 @@
 
       if (st === 'nick') {
         html = `${head}
-          <h2 class="px"><span class="b">닉네임을</span>정해주세요</h2>
+          <h2><span class="b">닉네임을</span>정해주세요</h2>
           <div class="wiz-body">
             <input class="uline" id="wiz-nick" placeholder="닉네임" maxlength="12" value="${esc(me.nickname || me.kakaoNick || '')}">
             <p class="dup-msg" id="dup-msg">이미 쓰고 있는 닉네임이에요</p>
@@ -1753,11 +1753,11 @@
           </div>`;
       } else if (st === 'pin') {
         html = `${head}
-          <h2 class="px"><span class="b">자주 밥 먹는 곳,</span>어디쯤인가요?</h2>
+          <h2><span class="b">자주 밥 먹는 곳,</span>어디쯤인가요?</h2>
           <p class="wiz-sub">지도를 움직여 핀을 맞춰주세요.</p>`;
       } else if (st === 'name') {
         html = `${head}
-          <h2 class="px"><span class="b">동네의</span>이름은 무엇인가요?</h2>
+          <h2><span class="b">동네의</span>이름은 무엇인가요?</h2>
           <div class="wiz-body">
             <input class="uline" id="wiz-name" placeholder="${wizMode === 'add' ? '집' : '회사'}" maxlength="10" value="${esc(s.name)}">
             <div class="picks" id="wiz-picks">
@@ -1770,7 +1770,7 @@
         if (!s.radius_m) { const d = nearestRad(RAD_DEFAULT[region], region); s.radius_m = d.m; s.radius_label = d.label; }
         const cur = nearestRad(s.radius_m, region);
         html = `${head}
-          <h2 class="px"><span class="b">여기서부터</span>얼마나 멀리까지?</h2>
+          <h2><span class="b">여기서부터</span>얼마나 멀리까지?</h2>
           <p class="wiz-sub">이 안에서만 골라드릴게요.</p>
           <div class="wiz-body" style="margin-top:24px">
             <div class="seg" id="wiz-rads" style="margin-top:0">
@@ -1780,7 +1780,7 @@
       } else {
         const mts = (s.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
         html = `${head}
-          <h2 class="px"><span class="b">언제</span>알려드릴까요?</h2>
+          <h2><span class="b">언제</span>알려드릴까요?</h2>
           <p class="wiz-sub">시각을 정하면 끼니는 알아서 구분해요.</p>
           <div class="wiz-body">
             <div class="flabel" style="margin-top:0">추천받을 시각</div>
@@ -2134,7 +2134,7 @@
       }
       view.innerHTML = `
         <button type="button" class="wiz-back" id="set-back" aria-label="뒤로">${BACK_SVG}</button>
-        <h2 class="px"><span class="b">내 동네</span></h2>
+        <h2><span class="b">내 동네</span></h2>
         <p class="sub">카드를 누르면 처음부터 다시 설정할 수 있어요.</p>
         <div class="slots">${slotsHtml}</div>
         <div class="etc">
