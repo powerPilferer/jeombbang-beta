@@ -284,7 +284,7 @@
     .hero-track.dragging { transition: none; }
     .hero-track > .hero { flex: none; width: 100%; position: relative; z-index: 2; }
     /* 이웃 카드는 살짝 뒤처졌다가 조금 늦게 붙는다 — 한 덩어리로 움직이는 딱딱함을 없앤다 */
-    .hero-track.animating > .hero { transition: transform .34s cubic-bezier(.25,.8,.35,1) .05s; }
+    .hero-track.animating > .hero { transition: transform .42s cubic-bezier(.22,.8,.3,1) .08s; }
     .hero-track > .hero.ghost { opacity: .5; }            /* 아직 안 연 다음 카드 — 밀면 열린다 */
     .hero-track > .hero.ghost > * { visibility: hidden; }
     .no-more { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: flex-end;
@@ -1276,7 +1276,7 @@
       track.classList.toggle('animating', !!animate);
       track.style.transform = `translateX(${-slotView * trackStep()}px)`;
       [...track.children].forEach(c => { c.style.transform = ''; });
-      if (animate) setTimeout(() => track.classList.remove('animating'), 420);
+      if (animate) setTimeout(() => track.classList.remove('animating'), 520);
     }
     function renderHero(spot) {
       spot = spot || activeSpot();
@@ -1592,8 +1592,8 @@
         trackEl.style.transform = `translateX(${base + dx}px)`;
         noMore.style.opacity = 0;
       }
-      // 현재 카드는 손가락에 딱 붙고, 나머지는 18% 뒤처진다
-      [...trackEl.children].forEach((c, i) => { c.style.transform = i === slotView ? '' : `translateX(${-dx * 0.18}px)`; });
+      // 현재 카드는 손가락에 딱 붙고, 나머지는 32% 뒤처진다
+      [...trackEl.children].forEach((c, i) => { c.style.transform = i === slotView ? '' : `translateX(${-dx * 0.32}px)`; });
     });
     function endDrag() {
       if (!dragging) return;
