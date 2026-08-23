@@ -1624,7 +1624,7 @@
         map.setCenter(new kakao.maps.LatLng(p.lat, p.lng));
         openPopup(p, activeSpot());
       };
-      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });   // 지도가 맨 위라 그냥 최상단으로
       if (wrap.classList.contains('tall')) { focus(); return; }
       wrap.classList.add('tall');
       localStorage.setItem('mfj-map-tall', '1');
