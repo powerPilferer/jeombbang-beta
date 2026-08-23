@@ -58,9 +58,6 @@
     body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--ink); background: var(--paper); }
     button, input { font: inherit; }
     .hidden { display: none !important; }
-    /* 아이폰식 가장자리 스와이프 뒤로가기 */
-    .edge-drag { transition: none !important; }
-    .edge-snap { transition: transform .2s cubic-bezier(.3,.7,.4,1); }
 
     /* ── 모바일 레이아웃: 탑바 + 지도 + 콘텐츠 ── */
     .topbar { position: sticky; top: 0; z-index: 900;
@@ -1595,53 +1592,6 @@
         else noMore.style.opacity = 0;
       }
     }
-    // ── 왼쪽 가장자리를 오른쪽으로 밀면 뒤로 (아이폰 기본 제스처와 같은 감각)
-    (() => {
-      const EDGE = 26, GO = 70;
-      let view = null, sx = 0, sy = 0, dx = 0, horiz = null;
-      const backTarget = () => {
-        if (document.body.classList.contains('settings-mode')) return { el: $('settings-view'), run: () => renderHome() };
-        if (document.body.classList.contains('setup-mode')) {
-          if (wizIdx > 0 || wizMode === 'edit' || wizMode === 'add') return { el: $('wiz-view'), run: () => wizBack() };
-        }
-        return null;
-      };
-      document.addEventListener('touchstart', e => {
-        if (e.touches.length !== 1) return;
-        const tt = e.touches[0];
-        if (tt.clientX > EDGE) return;
-        if (e.target.closest('#map-wrap')) return;      // 지도 드래그와 겹치지 않게
-        const tgt = backTarget();
-        if (!tgt) return;
-        view = tgt; sx = tt.clientX; sy = tt.clientY; dx = 0; horiz = null;
-        view.el.classList.add('edge-drag');
-      }, { passive: true });
-      document.addEventListener('touchmove', e => {
-        if (!view) return;
-        const tt = e.touches[0];
-        dx = tt.clientX - sx;
-        const dy = tt.clientY - sy;
-        if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) horiz = Math.abs(dx) > Math.abs(dy);
-        if (!horiz) return;
-        view.el.style.transform = `translateX(${Math.max(0, dx)}px)`;
-        view.el.style.opacity = String(Math.max(.45, 1 - Math.max(0, dx) / 400));
-      }, { passive: true });
-      const endEdge = () => {
-        if (!view) return;
-        const v = view, went = horiz && dx > GO;
-        view = null;
-        v.el.classList.remove('edge-drag');
-        v.el.classList.add('edge-snap');
-        v.el.style.transform = went ? 'translateX(100%)' : 'translateX(0)';
-        setTimeout(() => {
-          v.el.classList.remove('edge-snap');
-          v.el.style.transform = ''; v.el.style.opacity = '';
-          if (went) v.run();
-        }, went ? 190 : 200);
-      };
-      document.addEventListener('touchend', endEdge, { passive: true });
-      document.addEventListener('touchcancel', endEdge, { passive: true });
-    })();
     heroEl.addEventListener('pointerup', endDrag);
     heroEl.addEventListener('pointercancel', endDrag);
     $('wish-btn').addEventListener('click', async () => {
