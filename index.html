@@ -281,8 +281,7 @@
     /* 다음 카드가 오른쪽에 늘 살짝 보이게 — "옆으로 밀 수 있다"를 형태로 알림.
        카드를 그만큼 좁혀야 폰 화면에서 실제로 보인다 (여백만으론 8px밖에 안 나옴) */
     .hero-wrap { transition: margin .22s cubic-bezier(.3,.7,.4,1); }
-    .hero-wrap.has-next { margin-right: 34px; }
-    .hero-wrap.has-prev { margin-left: 34px; }
+    .hero-wrap.swipeable { margin: 0 34px; }   /* 좌우 자리를 늘 잡아둔다 — 카드 폭이 넘길 때마다 변하지 않게 */
     .hero-edge { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1;
       border-radius: 20px; background: var(--card); pointer-events: none; transition: opacity .18s; }
     .hero-edge.r { left: calc(100% + 12px); }
@@ -1250,8 +1249,7 @@
       const more = hasNextView(), prev = slotView > 0;
       $('hero-edge').classList.toggle('hidden', !more);
       $('hero-edge-l').classList.toggle('hidden', !prev);
-      $('hero-wrap').classList.toggle('has-next', more);
-      $('hero-wrap').classList.toggle('has-prev', prev);
+      $('hero-wrap').classList.toggle('swipeable', more || prev);
       const hint = $('swipe-hint');
       const hintTxt = left > 0 ? `옆으로 밀어서 다른 곳 보기 · ${left}번 남음`
         : revealedPlaces.length > 1 ? `옆으로 밀어서 ${revealedPlaces.length}곳 비교하기` : '';
