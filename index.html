@@ -703,7 +703,7 @@
     <section class="card detail hidden" id="detail"></section>
     <div class="sec-title hidden" id="wish-title"><span class="sec-ic"><svg viewBox="0 0 16 16" shape-rendering="crispEdges"><g fill="#140e08"><rect x="2" y="3" width="4" height="1"/><rect x="10" y="3" width="4" height="1"/><rect x="1" y="4" width="1" height="4"/><rect x="6" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="4"/><rect x="7" y="5" width="2" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="13" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="7" y="13" width="2" height="1"/></g><g class="hf"><rect x="2" y="4" width="4" height="1"/><rect x="10" y="4" width="4" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="9" y="5" width="5" height="1"/><rect x="2" y="6" width="12" height="2"/><rect x="3" y="8" width="10" height="1"/><rect x="4" y="9" width="8" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="7" y="12" width="2" height="1"/></g><rect class="hl" x="3" y="5" width="1" height="1"/></svg></span> 가보고 싶은 곳 <span class="n" id="wish-count">0</span></div>
     <div class="list hidden" id="wish-list"></div>
-    <div class="sec-title hidden" id="visited-title"><span class="emo">🍚</span> 다녀온 곳 <span class="n" id="visited-count">0</span></div>
+    <div class="sec-title hidden" id="visited-title"><span class="emo">🍚</span> 나의 맛지도 <span class="n" id="visited-count">0</span></div>
     <div class="list hidden" id="visited-list"></div>
   </main>
   <div id="setup-foot">
@@ -884,7 +884,7 @@
       map.setLevel(spot.radius_m > 8000 ? 9 : spot.radius_m > 4000 ? 8 : spot.radius_m > 2500 ? 7 : spot.radius_m > 1000 ? 6 : 5);
       map.setCenter(new kakao.maps.LatLng(spot.lat, spot.lng));
       syncRadiusCircle();
-      $('map-note').textContent = `${spot.name} ${spot.radius_label} 맛지도`;
+      $('map-note').textContent = `${spot.name} · ${spot.radius_label}`;
     }
     function showPin(place) {
       if (pinOv) pinOv.setMap(null);
@@ -1229,7 +1229,7 @@
         <div class="fact">${hs
           ? `<strong class="${hs.cls}">${esc(hs.main)}</strong><span>${esc(hs.sub)}</span>`
           : `<strong>${esc(p.category)}</strong><span>분류</span>`}</div>
-        <div class="fact"><strong>${avg ? '★' + avg.toFixed(1) : '첫 개척'}</strong><span>${avg ? '리뷰 ' + placeReviews(p.id).length + '개' : '아직 리뷰 없음'}</span></div>`;
+        <div class="fact"><strong>${avg ? '★' + avg.toFixed(1) : '첫 개척'}</strong><span>${avg ? '기록 ' + placeReviews(p.id).length + '개' : '아직 기록 없음'}</span></div>`;
       // 스와이프 힌트
       const canReveal = revealedPlaces.length < 3 && candQueue.length > 0;
       const left = canReveal ? 3 - revealedPlaces.length : 0;
@@ -1268,19 +1268,19 @@
           <a class="naver" href="https://map.naver.com/p/search/${encodeURIComponent(p.name)}" target="_blank" rel="noopener"><svg class="lk-ic" viewBox="0 0 12 12" fill="currentColor" shape-rendering="crispEdges"><rect x="4" y="1" width="4" height="1"/><rect x="3" y="2" width="6" height="1"/><rect x="2" y="3" width="8" height="3"/><rect x="3" y="6" width="6" height="1"/><rect x="4" y="7" width="4" height="1"/><rect x="5" y="8" width="2" height="2"/><rect x="5" y="3" width="2" height="2" fill="#1a1a1c"/></svg>네이버지도</a>
         </div>
         ${rows.length ? `<div class="visits">
-          <div class="avg">★ ${avgOf(p.id).toFixed(1)}<small>리뷰 ${rows.length}개</small></div>
+          <div class="avg">★ ${avgOf(p.id).toFixed(1)}<small>기록 ${rows.length}개</small></div>
           ${rows.map(r => {
             const mine = r.user_id === me.id;
             const who = nickById[r.user_id] || '익명';
             return `<div class="visit"><span class="who-chip${mine ? ' me' : ''}">${esc(who)}</span><b>${starText(r.rate)}</b>${r.comment ? ' · ' + esc(r.comment) : ''}<small>${r.visited_on}</small></div>`;
           }).join('')}</div>` : ''}
-        <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 리뷰 남기기</button>
+        <button type="button" class="visit-btn" id="visit-btn">🍚 다녀왔어요 — 기록 남기기</button>
         <div class="vform" id="visit-form">
           <div class="star-row">
             ${[1, 2, 3, 4, 5].map(v => `<button type="button" class="star" data-v="${v}">★</button>`).join('')}
             <span class="star-label">별점을 골라주세요</span>
           </div>
-          <textarea id="visit-comment" placeholder="짧은 감상평 (선택)" maxlength="50"></textarea>
+          <textarea id="visit-comment" placeholder="어땠는지 한 줄 (선택)" maxlength="50"></textarea>
           <div class="char-count" id="char-count">0 / 50</div>
           <button type="button" class="vsave" id="visit-save">기록하기</button>
         </div>`;
@@ -1366,7 +1366,7 @@
             <a class="naver" href="https://map.naver.com/p/search/${encodeURIComponent(p.name)}" target="_blank" rel="noopener"><svg class="lk-ic" viewBox="0 0 12 12" fill="currentColor" shape-rendering="crispEdges"><rect x="4" y="1" width="4" height="1"/><rect x="3" y="2" width="6" height="1"/><rect x="2" y="3" width="8" height="3"/><rect x="3" y="6" width="6" height="1"/><rect x="4" y="7" width="4" height="1"/><rect x="5" y="8" width="2" height="2"/><rect x="5" y="3" width="2" height="2" fill="#1a1a1c"/></svg>네이버지도</a>
           </div>
           <div class="wform">
-            <textarea class="wcomment" placeholder="짧은 감상평 (선택)" maxlength="50"></textarea>
+            <textarea class="wcomment" placeholder="어땠는지 한 줄 (선택)" maxlength="50"></textarea>
             <button type="button" class="vsave">기록하기</button>
           </div>
         </div>`;
@@ -1717,7 +1717,6 @@
       if (st === 'nick') {
         html = `${head}
           <h2 class="px"><span class="b">닉네임을</span>정해주세요</h2>
-          <p class="wiz-sub">리뷰에 표시될 이름이에요.</p>
           <div class="wiz-body">
             <input class="uline" id="wiz-nick" placeholder="닉네임" maxlength="12" value="${esc(me.nickname || me.kakaoNick || '')}">
             <p class="dup-msg" id="dup-msg">이미 쓰고 있는 닉네임이에요</p>
