@@ -279,7 +279,7 @@
     .push-cta:not(.hidden) + .push-cap { display: block; }
     .hero-wrap { position: relative; min-width: 0; width: 100%; }   /* 그리드 칸이 트랙 내용물 폭으로 늘어나지 않게 */
     /* 캐러셀: 카드들이 실제로 나란히 놓이고 트랙만 움직인다. 카드 폭 = 지도 폭, 이웃 카드는 화면 끝에 살짝 걸친다 */
-    .hero-track { display: flex; gap: 12px; width: 100%; position: relative; z-index: 2; will-change: transform;   /* 점빵이(no-more)보다 위 */ touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+    .hero-track { display: flex; gap: 6px; width: 100%; position: relative; z-index: 2; will-change: transform;   /* 점빵이(no-more)보다 위 */ touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
     .hero-track.animating { transition: transform .26s cubic-bezier(.3,.7,.4,1); }
     .hero-track.dragging { transition: none; }
     .hero-track > .hero { flex: none; width: 100%; position: relative; z-index: 2; }
@@ -1261,7 +1261,7 @@
         track.appendChild(ghost);
       }
     }
-    function trackStep() { return heroEl.offsetWidth + 12; }
+    function trackStep() { return heroEl.offsetWidth + 6; }   // 카드 폭 + gap (CSS와 맞출 것)
     function snapTrack(animate) {
       const track = $('hero-track');
       track.classList.toggle('animating', !!animate);
