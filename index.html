@@ -117,7 +117,21 @@
     body.flat-map #map { contain: none; }
     .map-note { position: absolute; z-index: 450; left: 12px; top: 12px; padding: 8px 12px; border-radius: 11px;
       background: #1c1c1eeb;   /* 지도가 매 프레임 다시 그려져 backdrop-filter는 비용이 크다 — 불투명 배경으로 대체 */
-      font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+      font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.3);
+      border: 0; color: var(--ink); font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+    button.map-note { cursor: pointer; }
+    button.map-note::after { content: ''; width: 0; height: 0; border: 3.5px solid transparent;
+      border-top-color: var(--muted); margin-top: 2px; transition: transform .18s; }
+    button.map-note.open::after { transform: rotate(180deg); margin-top: -2px; }
+    button.map-note:active { background: #2a2a2ceb; }
+    /* 반경 고르기 — map-note 바로 아래로 펼침 */
+    .rad-pop { position: absolute; z-index: 470; left: 12px; top: 46px; width: min(300px, calc(100% - 24px));
+      background: #1c1c1ef2; border-radius: 14px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+    .rad-pop .seg { margin-top: 0; background: #26262a; }
+    .rad-pop .seg button { padding: 11px 0; font-size: 13px; }
+    .rad-pop .rad-cap { margin-top: 8px; font-size: 11.5px; color: var(--muted); text-align: center; }
+    @media (prefers-reduced-motion: no-preference) { .rad-pop { animation: radIn .16s ease-out; } }
+    @keyframes radIn { from { opacity: 0; transform: translateY(-5px); } }
     main { max-width: 430px; margin: 0 auto; padding: 16px 18px calc(env(safe-area-inset-bottom) + 110px); display: grid; gap: 14px; overflow-x: clip; }
 
     /* ── PC 홈: 좌측 콘텐츠 470px + 우측 전체 지도 ── */
@@ -586,7 +600,8 @@
   </div></header>
 
   <div id="map-wrap">
-    <div class="map-note" id="map-note">점빵이 베타</div>
+    <button type="button" class="map-note" id="map-note" aria-haspopup="true" aria-expanded="false">점빵이 베타</button>
+    <div class="rad-pop hidden" id="rad-pop"></div>
     <div class="center-pin hidden" id="center-pin"><span class="emo">🍚</span></div>
     <div class="map-search hidden" id="map-search">
       <div class="search-box">
@@ -893,6 +908,74 @@
       map.setCenter(new kakao.maps.LatLng(spot.lat, spot.lng));
       syncRadiusCircle();
       $('map-note').textContent = `${spot.name} · ${spot.radius_label}`;
+
+    // ── 반경 바꾸기 — 지도 좌상단 이름표를 누르면 그 자리에서 고른다
+    function closeRadPop() {
+      $('rad-pop').classList.add('hidden');
+      $('map-note').classList.remove('open');
+      $('map-note').setAttribute('aria-expanded', 'false');
+    }
+    function toggleRadPop() {
+      const pop = $('rad-pop');
+      if (!pop.classList.contains('hidden')) { closeRadPop(); return; }
+      const spot = activeSpot();
+      if (!spot) return;
+      const opts = RAD_SETS[regionOf(spot)];
+      const cur = nearestRad(spot.radius_m, regionOf(spot));
+      pop.innerHTML = `<div class="seg">${opts.map(o =>
+        `<button type="button" data-m="${o.m}" class="${o.m === cur.m ? 'on' : ''}">${o.short}</button>`).join('')}</div>
+        <div class="rad-cap" id="rad-cap">${esc(cur.cap)} · 등록 식당 ${places.filter(p => distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m).length}곳</div>`;
+      pop.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+        const opt = opts.find(o => o.m === +b.dataset.m);
+        pop.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+        $('rad-cap').textContent = `${opt.cap} · 등록 식당 ${places.filter(p => distM(spot.lat, spot.lng, p.lat, p.lng) <= opt.m).length}곳`;
+        applyRadius(spot, opt);
+      }));
+      pop.classList.remove('hidden');
+      $('map-note').classList.add('open');
+      $('map-note').setAttribute('aria-expanded', 'true');
+    }
+
+    // 설정(반경·시각·위치)이 바뀐 뒤 오늘 추천을 정리한다. 마법사 저장과 반경 버튼이 같은 규칙을 쓴다.
+    //  · 새 설정에서도 유효한 픽은 그대로 둔다 — 반경을 넓혔을 뿐인데 보던 게 사라지면 안 된다
+    //  · 잠그는 건 '이미 지나간 끼니'뿐. 지금 끼니는 잠그지 않는다 — 점심시간에 반경을 바꿨는데
+    //    저녁까지 아무것도 못 보는 게 예전 동작이었다
+    async function reconcileAfterSettings(sp) {
+      if (!sp) return;
+      const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      const mts = (sp.meal_times || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+      const minOf = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      const currentSlot = mts.filter(m => minOf(m.time) <= nowMin).slice(-1)[0]?.slot || null;
+      const stale = todayPicks.filter(k => {
+        const p = places.find(x => x.id === k.place_id);
+        return !p || distM(sp.lat, sp.lng, p.lat, p.lng) > sp.radius_m || !(p.slots || []).includes(k.slot);
+      });
+      if (stale.length) {
+        await sb.from('picks').delete().in('id', stale.map(b => b.id));
+        todayPicks = todayPicks.filter(k => !stale.includes(k));
+      }
+      const passed = [...new Set(mts.filter(m => minOf(m.time) <= nowMin && m.slot !== currentSlot).map(m => m.slot))];
+      if (passed.length) {
+        await sb.from('slot_blocks').upsert(passed.map(x => ({ user_id: me.id, pick_date: todayStr(), slot: x })),
+          { onConflict: 'user_id,pick_date,slot', ignoreDuplicates: true });
+        passed.forEach(x => todayBlocks.add(x));
+      }
+    }
+    let radSaving = false;
+    async function applyRadius(spot, opt) {
+      if (radSaving || opt.m === spot.radius_m) { if (opt.m === spot.radius_m) closeRadPop(); return; }
+      radSaving = true;
+      const cap = $('rad-cap'); if (cap) cap.innerHTML = '<span class="spin"></span> 저장 중…';
+      const { error } = await sb.from('spots').update({ radius_m: opt.m, radius_label: opt.label }).eq('id', spot.id);
+      if (error) { radSaving = false; if (cap) cap.textContent = '저장 실패 — ' + error.message; return; }
+      await loadSpots();
+      await reconcileAfterSettings(activeSpot());   // 발굴 연출 없이 즉시 반영 — 이미 아는 동네다
+      radSaving = false;
+      closeRadPop();
+      slotView = 0;
+      renderHome();
+    }
+
     }
     function showPin(place) {
       if (pinOv) pinOv.setMap(null);
@@ -935,6 +1018,7 @@
     let nickById = {};         // user_id → nickname
     let todayPicks = [];       // 오늘 내 picks (shown)
     let todayBlocks = new Set(); // 오늘 소급 공개 잠금 끼니 (재설정으로 지난 시각)
+    const SCOUT_MS = 4000;   // 새 동네 인트로 길이 — 기다림이 아니라 연출이라 짧게
     let recentPickIds = new Set(); // 최근 3일(오늘 제외) 노출됐던 곳 — 티어 강등용
     let currentSlotKey = null;
     let countdownTimer = null;
@@ -1075,12 +1159,12 @@
         return;
       }
 
-      // 설정 직후 발굴 연출 — 이미 발굴된 동네여도 처음엔 점빵이가 찾는 모습 (2분)
+      // 새 동네를 열 때의 짧은 인트로 — 점빵이가 동네를 훑는 모습 (SCOUT_MS)
       const scoutUntil = +localStorage.getItem('mfj-scout') || 0;
       if (scoutUntil > Date.now()) {
         const nextMt = plan.next || plan.current || plan.first;
         const when = plan.next ? plan.next.time + '에' : plan.current ? '곧' : (plan.first ? '내일 ' + plan.first.time + '에' : '');
-        renderExploring(spot, nextMt ? nextMt.slot : null, `다 찾으면 ${when} 정해드릴게요`);
+        renderExploring(spot, nextMt ? nextMt.slot : null, `${when} 정해드릴게요`);
         clearTimeout(scoutTimer);
         scoutTimer = setTimeout(() => {
           if (!document.body.classList.contains('setup-mode') && !document.body.classList.contains('settings-mode')) renderHome();
@@ -1621,6 +1705,11 @@
       if (e.target.closest('.go-map')) goMapClick();
     });
     window.addEventListener('resize', () => { if (!$('hero-wrap').classList.contains('hidden')) snapTrack(false); });
+    $('map-note').addEventListener('click', e => { e.stopPropagation(); toggleRadPop(); });
+    document.addEventListener('click', e => {
+      if (!$('rad-pop').classList.contains('hidden') && !e.target.closest('#rad-pop') && !e.target.closest('#map-note')) closeRadPop();
+    });
+
     function goMapClick() {
       const p = currentPlace();
       if (!p) return;
@@ -2060,34 +2149,15 @@
         alert('저장 실패: ' + error.message);
         return;
       }
+      const prevKey = (() => { const a = activeSpot(); return a ? a.lat + ',' + a.lng : null; })();
       closeWizard();
       await Promise.all([loadSpots(), loadPicks()]);
-      // 설정이 바뀌었으니: ① 새 반경·시각과 안 맞는 픽 + ② 이미 지난 끼니의 픽은 전부 무효화
-      //    지난 끼니는 소급 공개하지 않고 다음 끼니 잠김으로 (재설정 = 오늘 지난 끼니 리셋)
       const sp = activeSpot();
-      if (sp) {
-        const now = new Date();
-        const nowMin = now.getHours() * 60 + now.getMinutes();
-        const passed = new Set((sp.meal_times || []).filter(m => {
-          const [h, mi] = m.time.split(':').map(Number);
-          return h * 60 + mi <= nowMin;
-        }).map(m => m.slot));
-        // 설정을 바꿨으면 오늘 추천은 전면 재산출 — 지난 끼니는 잠기고, 남은 끼니는 그 시각에 새로 뽑힘
-        const bad = todayPicks.slice();
-        if (bad.length) {
-          await sb.from('picks').delete().in('id', bad.map(b => b.id));
-          todayPicks = todayPicks.filter(k => !bad.includes(k));
-        }
-        if (passed.size) {
-          await sb.from('slot_blocks').upsert(
-            [...passed].map(s => ({ user_id: me.id, pick_date: todayStr(), slot: s })),
-            { onConflict: 'user_id,pick_date,slot', ignoreDuplicates: true });
-          passed.forEach(s => todayBlocks.add(s));
-        }
-      }
-      // 새 동네 발굴 연출 — 2분간 "발굴 중" 화면 후 잠김/공개로 전환
-      if (sp && places.some(p => distM(sp.lat, sp.lng, p.lat, p.lng) <= sp.radius_m)) {
-        localStorage.setItem('mfj-scout', String(Date.now() + 120000));
+      await reconcileAfterSettings(sp);
+      // 인트로는 '동네가 새로 생겼을 때'만 — 반경·시각만 고친 재설정에는 넣지 않는다 (이미 아는 동네다)
+      const newArea = sp && (!prevKey || prevKey !== sp.lat + ',' + sp.lng);
+      if (newArea && places.some(p => distM(sp.lat, sp.lng, p.lat, p.lng) <= sp.radius_m)) {
+        localStorage.setItem('mfj-scout', String(Date.now() + SCOUT_MS));
       }
       slotView = 0;
       renderHome();
