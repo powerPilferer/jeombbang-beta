@@ -908,6 +908,8 @@
       map.setCenter(new kakao.maps.LatLng(spot.lat, spot.lng));
       syncRadiusCircle();
       $('map-note').textContent = `${spot.name} · ${spot.radius_label}`;
+    }
+
 
     // ── 반경 바꾸기 — 지도 좌상단 이름표를 누르면 그 자리에서 고른다
     function closeRadPop() {
@@ -974,8 +976,6 @@
       closeRadPop();
       slotView = 0;
       renderHome();
-    }
-
     }
     function showPin(place) {
       if (pinOv) pinOv.setMap(null);
