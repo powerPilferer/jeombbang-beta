@@ -149,14 +149,15 @@
   var SB_URL = 'https://wbtgaydqpupxgmwmxbdv.supabase.co';
   var SB_KEY = 'sb_publishable_kZD_r_s3lca-tdu8NqABnA_WVgHWKBo';
   var LABEL = {chungmuro:'충무로', ahyeon:'아현', gangnam:'강남', yeouido:'여의도', ilsan:'일산', bucheon:'부천', pangyo:'판교',
-               suwon:'수원', wonju:'원주', maseok:'마석', gwanghwamun:'광화문', hongdae:'홍대', seongsu:'성수', jamsil:'잠실', guro:'구로디지털단지'};
+               suwon:'수원', wonju:'원주', maseok:'마석', gwanghwamun:'광화문', hongdae:'홍대', seongsu:'성수', jamsil:'잠실', guro:'구로디지털단지', wangsimni:'왕십리'};
   // 선발굴 대기 동네 — DB에 식당이 생기면 자동으로 '대기'에서 빠진다
   var PLANNED = [
     {region:'gwanghwamun', lat:37.57165, lng:126.97642, radius:800,  slot:'breakfast'},
     {region:'hongdae',     lat:37.55687, lng:126.92378, radius:800,  slot:'latenight'},
     {region:'seongsu',     lat:37.54250, lng:127.06264, radius:1000, slot:'latenight'},
     {region:'jamsil',      lat:37.51331, lng:127.10023, radius:800,  slot:'breakfast'},
-    {region:'guro',        lat:37.48526, lng:126.90147, radius:800,  slot:'latenight'}
+    {region:'guro',        lat:37.48526, lng:126.90147, radius:800,  slot:'latenight'},
+    {region:'wangsimni',   lat:37.56127, lng:127.03710, radius:800,  slot:'breakfast'}
   ];
   var SL = {breakfast:'아침', lunch:'점심', dinner:'저녁', latenight:'야식'};
   var GROUP = {'국물':'국물','라멘':'면','면':'면','고기':'고기','백반':'밥','한식':'밥','함박':'밥','카레':'밥','돈까스':'밥','분식':'분식','중식':'아시아','아시아':'아시아','치킨':'야식','족발':'야식','안주':'야식'};
