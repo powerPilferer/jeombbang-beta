@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const label = SLOT_LABEL[d.slot] || "식사";
     const payload = JSON.stringify({
       title: `🍚 오늘 ${label} 뭐먹정!`,
-      body: `${d.time} — 오늘의 한 곳이 공개됐어요. 들어와서 확인해보세요.`,
+      body: `${d.time} — 추천이 나왔어요. 들어와서 확인해보세요.`,
       url: "https://powerpilferer.github.io/jeombbang-beta/",
     });
     for (const s of subs || []) {

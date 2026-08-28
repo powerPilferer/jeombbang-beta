@@ -6,7 +6,7 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) {}
   e.waitUntil(self.registration.showNotification(d.title || '뭐먹정', {
-    body: d.body || '오늘의 한 곳이 공개됐어요',
+    body: d.body || '오늘 추천이 나왔어요',
     icon: 'icon-192.png',
     badge: 'icon-192.png',
     data: { url: d.url || './' }
