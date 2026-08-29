@@ -154,12 +154,12 @@
                sangam:'상암DMC', gasan:'가산디지털단지', magok:'마곡', mokdong:'목동·오목교', nowon:'노원'};
   // 선발굴 대기 동네 — DB에 식당이 생기면 자동으로 '대기'에서 빠진다.
   // 아직 안 깐 동네만 둔다 (선발굴목록.json 의 done=false 와 같은 목록).
-  // 2026-08-29 1순위 11곳 완료 → 2순위 5곳 등록. 업무지구는 아침, 주거·번화 상권은 야식을 노린다.
+  // 2026-08-30 단일 담당 폐지 — 배치마다 아침·야식 최소 4곳씩 '끼니 골고루'로 깐다.
   var PLANNED = [
-    {region:'gasan',   lat:37.48040, lng:126.88266, radius:800,  slot:'breakfast'},
-    {region:'magok',   lat:37.56671, lng:126.82742, radius:1000, slot:'breakfast'},
-    {region:'mokdong', lat:37.52453, lng:126.87531, radius:1000, slot:'latenight'},
-    {region:'nowon',   lat:37.65634, lng:127.06345, radius:800,  slot:'latenight'}
+    {region:'gasan',   lat:37.48040, lng:126.88266, radius:800},
+    {region:'magok',   lat:37.56671, lng:126.82742, radius:1000},
+    {region:'mokdong', lat:37.52453, lng:126.87531, radius:1000},
+    {region:'nowon',   lat:37.65634, lng:127.06345, radius:800}
   ];
   var SL = {breakfast:'아침', lunch:'점심', dinner:'저녁', latenight:'야식'};
   var GROUP = {'국물':'국물','라멘':'면','면':'면','고기':'고기','백반':'밥','한식':'밥','함박':'밥','카레':'밥','돈까스':'밥','분식':'분식','중식':'아시아','아시아':'아시아','치킨':'야식','족발':'야식','안주':'야식'};
@@ -228,7 +228,7 @@
         return '<div class="bar '+k+'"><div class="t"><span>'+SL[k]+'</span><b>'+n+'</b></div><div class="k"><i style="width:'+pct+'%" class="'+(n?'':'zero')+'"></i></div></div>';
       }).join('');
       var zero = ['breakfast','latenight'].filter(function(k){ return r.count && !r.slotn[k]; }).map(function(k){ return '<span class="chip warn">'+SL[k]+' 없음</span>'; }).join('');
-      var meta = r.planned ? '선발굴 대기 · '+SL[r.slot]+' 노림 · 반경 '+r.radius+'m' : '마지막 발굴 '+r.last;
+      var meta = r.planned ? '선발굴 대기 · 끼니 골고루 · 반경 '+r.radius+'m' : '마지막 발굴 '+r.last;
       return '<button class="rg'+(r.planned?' planned':'')+(cur===r.key?' on':'')+'" data-k="'+r.key+'"><div class="top"><h3>'+esc(r.label)+'</h3>'+zero+'<span class="cnt">'+r.count+'<small>곳</small></span></div>'+
         (r.planned ? '' : '<div class="bars">'+bars+'</div>')+'<div class="meta">'+meta+'</div></button>';
     }).join('');
@@ -278,7 +278,7 @@
     if (!r) return;
     cur = key;
     $('back').style.display = ''; $('title').textContent = r.label;
-    $('sub').textContent = r.planned ? '아직 발굴 전 · '+SL[r.slot]+' 담당부터 채웁니다' : r.count+'곳 노출 · 마지막 발굴 '+r.last;
+    $('sub').textContent = r.planned ? '아직 발굴 전 · 끼니 골고루 채웁니다(아침·야식 최소 4곳씩)' : r.count+'곳 노출 · 마지막 발굴 '+r.last;
     [].slice.call(document.querySelectorAll('.rg')).forEach(function(b){ b.classList.toggle('on', b.dataset.k === key); });
     if (!quiet) {
       var b = new kakao.maps.LatLngBounds();
