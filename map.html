@@ -152,15 +152,9 @@
                suwon:'수원', wonju:'원주', maseok:'마석', gwanghwamun:'광화문', hongdae:'홍대', seongsu:'성수', jamsil:'잠실', guro:'구로디지털단지', wangsimni:'왕십리',
                sinchon:'신촌·이대', yeongdeungpo:'영등포', sadang:'사당·이수'};
   // 선발굴 대기 동네 — DB에 식당이 생기면 자동으로 '대기'에서 빠진다
+  // 아직 안 깐 동네만 남긴다 (선발굴목록.json 의 done=false 와 같은 목록).
+  // 깔린 동네를 남겨둬도 화면엔 안 뜨지만(식당이 생기면 자동으로 빠진다) 목록이 낡아 헷갈린다.
   var PLANNED = [
-    {region:'gwanghwamun', lat:37.57165, lng:126.97642, radius:800,  slot:'breakfast'},
-    {region:'hongdae',     lat:37.55687, lng:126.92378, radius:800,  slot:'latenight'},
-    {region:'seongsu',     lat:37.54250, lng:127.06264, radius:1000, slot:'latenight'},
-    {region:'jamsil',      lat:37.51331, lng:127.10023, radius:800,  slot:'breakfast'},
-    {region:'guro',        lat:37.48526, lng:126.90147, radius:800,  slot:'latenight'},
-    {region:'wangsimni',   lat:37.56127, lng:127.03710, radius:800,  slot:'breakfast'},
-    {region:'sinchon',      lat:37.55601, lng:126.94171, radius:800,  slot:'latenight'},
-    {region:'yeongdeungpo', lat:37.51646, lng:126.90580, radius:800,  slot:'breakfast'},
     {region:'sadang',       lat:37.48093, lng:126.98162, radius:1000, slot:'latenight'}
   ];
   var SL = {breakfast:'아침', lunch:'점심', dinner:'저녁', latenight:'야식'};
