@@ -762,6 +762,10 @@
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const $ = id => document.getElementById(id);
     const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+    // DB의 timestamptz 는 UTC 문자열("2026-08-27T22:12:58+00:00")로 온다. 그대로 앞 10자를 자르면
+    // 한국 새벽·아침에 들어온 행이 전날로 잡힌다 — 07:00 KST 발굴 = 전날 22:00 UTC 라서
+    // '오늘의 신입'이 한 번도 안 걸렸다 (2026-08-29 발견). 반드시 현지 날짜로 환산해서 비교한다.
+    const localDateStr = ts => { const d = new Date(ts); return isNaN(d) ? '' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
     // ── 시간대: 시각 입력 → 자동 분류 (기획 확정 경계)
     const SLOTS = {
@@ -1113,7 +1117,7 @@
       const slotRank = p => (p.slots || []).includes(slotKey) ? 0 : 1;   // 전담 집이 먼저
       // 찜은 추천 순서에 영향을 주지 않는다 — '가고 싶다' 표시일 뿐, 홈의 '가보고 싶은 곳' 목록에서 본다 (2026-08-26)
       const sortFn = (a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
-      const isNewbie = p => (p.created_at || '').slice(0, 10) === todayStr();
+      const isNewbie = p => !!p.created_at && localDateStr(p.created_at) === todayStr();
       const t0 = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
       for (const p of cands) {
         const mine = myReview(p.id);
