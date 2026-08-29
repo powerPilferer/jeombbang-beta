@@ -150,12 +150,18 @@
   var SB_KEY = 'sb_publishable_kZD_r_s3lca-tdu8NqABnA_WVgHWKBo';
   var LABEL = {chungmuro:'충무로', ahyeon:'아현', gangnam:'강남', yeouido:'여의도', ilsan:'일산', bucheon:'부천', pangyo:'판교',
                suwon:'수원', wonju:'원주', maseok:'마석', gwanghwamun:'광화문', hongdae:'홍대', seongsu:'성수', jamsil:'잠실', guro:'구로디지털단지', wangsimni:'왕십리',
-               sinchon:'신촌·이대', yeongdeungpo:'영등포', sadang:'사당·이수'};
-  // 선발굴 대기 동네 — DB에 식당이 생기면 자동으로 '대기'에서 빠진다
-  // 아직 안 깐 동네만 남긴다 (선발굴목록.json 의 done=false 와 같은 목록).
-  // 깔린 동네를 남겨둬도 화면엔 안 뜨지만(식당이 생기면 자동으로 빠진다) 목록이 낡아 헷갈린다.
-  // 2026-08-29 사당까지 끝나 서울 선발굴 11/11 완료 — 다음 회차 목록이 정해지면 여기에 추가한다.
-  var PLANNED = [];
+               sinchon:'신촌·이대', yeongdeungpo:'영등포', sadang:'사당·이수',
+               sangam:'상암DMC', gasan:'가산디지털단지', magok:'마곡', mokdong:'목동·오목교', nowon:'노원'};
+  // 선발굴 대기 동네 — DB에 식당이 생기면 자동으로 '대기'에서 빠진다.
+  // 아직 안 깐 동네만 둔다 (선발굴목록.json 의 done=false 와 같은 목록).
+  // 2026-08-29 1순위 11곳 완료 → 2순위 5곳 등록. 업무지구는 아침, 주거·번화 상권은 야식을 노린다.
+  var PLANNED = [
+    {region:'sangam',  lat:37.57601, lng:126.90128, radius:800,  slot:'breakfast'},
+    {region:'gasan',   lat:37.48040, lng:126.88266, radius:800,  slot:'breakfast'},
+    {region:'magok',   lat:37.56671, lng:126.82742, radius:1000, slot:'breakfast'},
+    {region:'mokdong', lat:37.52453, lng:126.87531, radius:1000, slot:'latenight'},
+    {region:'nowon',   lat:37.65634, lng:127.06345, radius:800,  slot:'latenight'}
+  ];
   var SL = {breakfast:'아침', lunch:'점심', dinner:'저녁', latenight:'야식'};
   var GROUP = {'국물':'국물','라멘':'면','면':'면','고기':'고기','백반':'밥','한식':'밥','함박':'밥','카레':'밥','돈까스':'밥','분식':'분식','중식':'아시아','아시아':'아시아','치킨':'야식','족발':'야식','안주':'야식'};
   var GCOL = {'국물':'#c9473a','면':'#d9a520','고기':'#8a4b2f','밥':'#3f9a5e','분식':'#e2742f','아시아':'#2f8fb5','야식':'#7a4fb8'};
