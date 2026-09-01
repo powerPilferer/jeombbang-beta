@@ -1061,33 +1061,48 @@
     }
 
     // ── 추천 후보: 반경 + 슬롯, 안 가본 곳 우선 + 평점·거리, 날짜 시드 회전
+    // 그 요일에 실제로 적용되는 영업시간. hours_ex 에 그 요일이 있으면 그걸 쓰고, 없으면 기본값.
+    // (수–일 24시 / 월 20:10 처럼 요일마다 다른 집이 377곳 중 85곳)
+    function dayHours(p, wd) {
+      if ((p.closed_days || []).includes(wd)) return null;   // 정기 휴무 — 휴무 판단은 여기 한 곳에서만 한다
+      const hx = p.hours_ex || {}, k = String(wd);
+      if (Object.prototype.hasOwnProperty.call(hx, k)) {
+        const v = hx[k];
+        if (!v) return null;                       // 그 요일은 휴무
+        return { open: v.open, close: v.close, bs: v.bs, be: v.be };
+      }
+      return { open: p.open_min, close: p.close_min, bs: p.break_start, be: p.break_end };
+    }
+
     // 지금 영업 상태 (상세 카드 표시용)
     function hoursStatus(p) {
       const now = new Date();
       const t = now.getHours() * 60 + now.getMinutes();
       const fmt = m => `${String(Math.floor((m % 1440) / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-      if ((p.closed_days || []).includes(now.getDay()))
-        return { cls: 'off', label: '오늘 휴무', main: '오늘 휴무', sub: '정기 휴무일' };
-      if (p.open_min == null || p.close_min == null) return null;
-      const inRange = (t >= p.open_min && t < p.close_min) || (t + 1440 >= p.open_min && t + 1440 < p.close_min);
-      if (!inRange) return t < p.open_min
-        ? { cls: 'off', label: `${fmt(p.open_min)} 오픈`, main: `${fmt(p.open_min)} 오픈`, sub: '아직 준비 중' }
+      const h = dayHours(p, now.getDay());
+      if (!h) return { cls: 'off', label: '오늘 휴무', main: '오늘 휴무', sub: '정기 휴무일' };
+      if (h.open == null || h.close == null) return null;
+      const inRange = (t >= h.open && t < h.close) || (t + 1440 >= h.open && t + 1440 < h.close);
+      if (!inRange) return t < h.open
+        ? { cls: 'off', label: `${fmt(h.open)} 오픈`, main: `${fmt(h.open)} 오픈`, sub: '아직 준비 중' }
         : { cls: 'off', label: '영업 종료', main: '영업 종료', sub: '오늘은 마감' };
-      if (p.break_start != null && p.break_end != null && t >= p.break_start && t < p.break_end)
-        return { cls: 'soon', label: `브레이크타임 · ${fmt(p.break_end)} 다시 열어요`, main: '브레이크', sub: `${fmt(p.break_end)} 오픈` };
-      if (p.close_min - t <= 60)
-        return { cls: 'soon', label: `곧 마감 · ${fmt(p.close_min)}까지`, main: '곧 마감', sub: `${fmt(p.close_min)}까지` };
-      return { cls: 'open', label: '영업 중', main: '영업 중', sub: `${fmt(p.close_min)} 마감` };
+      if (h.bs != null && h.be != null && t >= h.bs && t < h.be)
+        return { cls: 'soon', label: `브레이크타임 · ${fmt(h.be)} 다시 열어요`, main: '브레이크', sub: `${fmt(h.be)} 오픈` };
+      if (h.close - t <= 60)
+        return { cls: 'soon', label: `곧 마감 · ${fmt(h.close)}까지`, main: '곧 마감', sub: `${fmt(h.close)}까지` };
+      return { cls: 'open', label: '영업 중', main: '영업 중', sub: `${fmt(h.close)} 마감` };
     }
 
     // 공개 시각에 실제로 문이 열려 있는가 (영업시간·브레이크타임 — 데이터 없으면 통과)
-    function openAt(p, hhmm) {
-      if (p.open_min == null || p.close_min == null) return true;
+    function openAt(p, hhmm, wd) {
+      const d = dayHours(p, wd == null ? new Date().getDay() : wd);
+      if (!d) return false;                                  // 그 요일 휴무
+      if (d.open == null || d.close == null) return true;    // 시간 정보가 없으면 통과
       const [h, m] = String(hhmm).split(':').map(Number);
       const t = h * 60 + m;
-      const inRange = (t >= p.open_min && t < p.close_min) || (t + 1440 >= p.open_min && t + 1440 < p.close_min);
+      const inRange = (t >= d.open && t < d.close) || (t + 1440 >= d.open && t + 1440 < d.close);
       if (!inRange) return false;
-      if (p.break_start != null && p.break_end != null && t >= p.break_start && t < p.break_end) return false;
+      if (d.bs != null && d.be != null && t >= d.bs && t < d.be) return false;
       return true;
     }
     function rankedCandidates(spot, slotKey, atTime) {
@@ -1099,7 +1114,7 @@
       let cands = places.filter(p =>
         distM(spot.lat, spot.lng, p.lat, p.lng) <= spot.radius_m &&
         okSlot(p) &&
-        !(p.closed_days || []).includes(todayWd));   // 오늘 휴무인 집만 제외
+        dayHours(p, todayWd) !== null);              // 오늘 문 여는 집만 (정기 휴무 + 요일별 시간표)
       // 오늘 다른 끼니에서 이미 공개된 곳은 제외 (풀이 바닥나면 중복 허용)
       const otherSlotIds = new Set(todayPicks.filter(k => k.slot !== slotKey).map(k => k.place_id));
       let otherSlotSeen = [];
