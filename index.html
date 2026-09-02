@@ -1024,6 +1024,7 @@
     let todayBlocks = new Set(); // 오늘 소급 공개 잠금 끼니 (재설정으로 지난 시각)
     const SCOUT_MS = 4000;   // 새 동네 인트로 길이 — 기다림이 아니라 연출이라 짧게
     let recentPickIds = new Set(); // 최근 3일(오늘 제외) 노출됐던 곳 — 티어 강등용
+    let recentPickCount = new Map(); // 최근 14일(오늘 제외) 곳별 노출 횟수 — 티어 안에서 덜 보여준 집을 앞으로 (2026-09-02)
     let currentSlotKey = null;
     let countdownTimer = null;
     let scoutTimer = null;
@@ -1131,7 +1132,9 @@
       const openRank = p => (atTime && !openAt(p, atTime)) ? 1 : 0;
       const slotRank = p => (p.slots || []).includes(slotKey) ? 0 : 1;   // 전담 집이 먼저
       // 찜은 추천 순서에 영향을 주지 않는다 — '가고 싶다' 표시일 뿐, 홈의 '가보고 싶은 곳' 목록에서 본다 (2026-08-26)
-      const sortFn = (a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
+      // 같은 티어 안에서는 최근 14일 동안 덜 보여준 집이 먼저다 — 풀이 작아도 같은 집이 매일 1등에 앉지 않게 (2026-09-02)
+      const shownN = p => recentPickCount.get(p.id) || 0;
+      const sortFn = (a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || (shownN(a) - shownN(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
       const isNewbie = p => !!p.created_at && localDateStr(p.created_at) === todayStr();
       const t0 = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
       for (const p of cands) {
@@ -1147,13 +1150,11 @@
         else t1.push(p);                                               // 새 미방문
       }
       t0.sort((a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || dSort(a, b)); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
-      const seedStr = todayStr() + slotKey + me.id;
-      const seed = [...seedStr].reduce((s, c) => s + c.charCodeAt(0), 0);
-      const rot = arr => { if (arr.length < 2) return arr; const off = seed % arr.length; return arr.slice(off).concat(arr.slice(0, off)); };
-      let ranked = t0.concat(rot(t1), rot(t2), rot(t3));
+      // 예전의 날짜 씨앗 회전은 하루에 한 칸씩만 돌아 사실상 같은 순서였다 — 노출 횟수 정렬로 대체 (2026-09-02)
+      let ranked = t0.concat(t1, t2, t3);
       if (ranked.length < 3) {   // 3곳을 못 채우면 쿨다운·중복 제외를 한 단계 완화
         const spare = relax.concat(otherSlotSeen).sort(sortFn);
-        if (spare.length) ranked = ranked.concat(rot(spare));
+        if (spare.length) ranked = ranked.concat(spare);
       }
       if (!ranked.length && cands.length) {   // 그래도 없으면 최후 안전망
         return cands.sort(sortFn);
@@ -2351,11 +2352,15 @@
       const [r1, r2, r3] = await Promise.all([
         sb.from('picks').select('id,slot,place_id,created_at').eq('pick_date', todayStr()).eq('status', 'shown').order('created_at'),
         sb.from('slot_blocks').select('slot').eq('pick_date', todayStr()),
-        sb.from('picks').select('place_id').gte('pick_date', daysAgoStr(3)).lt('pick_date', todayStr()).eq('status', 'shown')
+        sb.from('picks').select('place_id,pick_date').gte('pick_date', daysAgoStr(14)).lt('pick_date', todayStr()).eq('status', 'shown')
       ]);
       todayPicks = r1.data || [];
       todayBlocks = new Set((r2.data || []).map(b => b.slot));
-      recentPickIds = new Set((r3.data || []).map(k => k.place_id));
+      const past = r3.data || [];
+      const d3 = daysAgoStr(3);
+      recentPickIds = new Set(past.filter(k => k.pick_date >= d3).map(k => k.place_id));
+      recentPickCount = new Map();
+      past.forEach(k => recentPickCount.set(k.place_id, (recentPickCount.get(k.place_id) || 0) + 1));
     }
 
     // ── 부팅
