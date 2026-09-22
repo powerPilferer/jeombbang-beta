@@ -2318,8 +2318,15 @@
       return true;
     }
     async function loadPlaces() {
-      const { data } = await sb.from('places').select('*');
-      places = data || [];
+      // DB는 한 번에 1,000행까지만 준다 — 1,000개씩 끝까지 나눠 읽는다 (2026-09-22, 풀 1,500곳 넘어 최근 발굴분이 빠지던 문제)
+      const STEP = 1000, acc = [];
+      for (let from = 0; ; from += STEP) {
+        const { data, error } = await sb.from('places').select('*').order('id').range(from, from + STEP - 1);
+        if (error) { if (!acc.length) return; break; }   // 첫 장부터 실패하면 기존 목록 유지
+        acc.push(...(data || []));
+        if (!data || data.length < STEP) break;
+      }
+      places = acc;
     }
     async function loadReviews() {
       const [r1, r2, r3] = await Promise.all([
