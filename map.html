@@ -211,7 +211,16 @@
   // ── 데이터
   function load(){
     $('livet').textContent = '읽는 중…';
-    sb.from('places').select('id,name,region,lat,lng,slots,category,hours,menu,price,evidence,verified_at').eq('active', true)
+    // DB는 한 번에 1,000행까지만 준다 — 1,000개씩 끝까지 나눠 읽는다 (2026-09-22, 풀 1,500곳 넘어 절반이 잘리던 문제)
+    var COLS = 'id,name,region,lat,lng,slots,category,hours,menu,price,evidence,verified_at', STEP = 1000, acc = [];
+    function page(from){
+      return sb.from('places').select(COLS).eq('active', true).order('id').range(from, from + STEP - 1).then(function(res){
+        if (res.error) return res;
+        acc = acc.concat(res.data || []);
+        return (res.data || []).length === STEP ? page(from + STEP) : {data: acc};
+      });
+    }
+    page(0)
       .then(function(res){
         if (res.error) { fail(res.error.message); return; }
         places = res.data || []; lastAt = new Date(); $('live').classList.remove('stale'); $('err').style.display = 'none';
