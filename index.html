@@ -1028,6 +1028,7 @@
     let todayBlocks = new Set(); // 오늘 소급 공개 잠금 끼니 (재설정으로 지난 시각)
     const SCOUT_MS = 4000;   // 새 동네 인트로 길이 — 기다림이 아니라 연출이라 짧게
     let recentPickIds = new Set(); // 최근 3일(오늘 제외) 노출됐던 곳 — 티어 강등용
+    let everShownIds = new Set();  // 지금까지 한 번이라도 보여준 곳 — 안 보여준 곳을 먼저 (2026-09-26)
     let recentPickCount = new Map(); // 최근 14일(오늘 제외) 곳별 노출 횟수 — 티어 안에서 덜 보여준 집을 앞으로 (2026-09-02)
     let currentSlotKey = null;
     let countdownTimer = null;
@@ -1140,7 +1141,10 @@
       const shownN = p => recentPickCount.get(p.id) || 0;
       const sortFn = (a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || (shownN(a) - shownN(b)) || (avgOf(b.id) - avgOf(a.id)) || dSort(a, b);
       const isNewbie = p => !!p.created_at && localDateStr(p.created_at) === todayStr();
-      const t0 = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
+      // 최근 7일 안에 들어왔고 아직 한 번도 안 보여준 집 — 데뷔 다음 날부터 옛 미방문 무더기에 묻히던 문제 (2026-09-26)
+      const freshFrom = daysAgoStr(7);
+      const isFresh = p => !!p.created_at && localDateStr(p.created_at) >= freshFrom;
+      const t0 = [], tN = [], tU = [], t1 = [], t2 = [], t3 = [], relax = [];   // relax = 부족할 때만 푸는 예비
       for (const p of cands) {
         const mine = myReview(p.id);
         if (isNewbie(p) && p.debut_slot && p.debut_slot !== slotKey) { relax.push(p); continue; }  // 신입은 담당 끼니 전용
@@ -1151,11 +1155,14 @@
           t3.push(p);                                                  // 재추천 후보
         } else if (isNewbie(p)) t0.push(p);                            // 오늘의 신입 — 그날 데뷔
         else if (recentPickIds.has(p.id)) t2.push(p);                  // 최근 3일 노출됐던 미방문
-        else t1.push(p);                                               // 새 미방문
+        else if (!everShownIds.has(p.id)) (isFresh(p) ? tN : tU).push(p);   // 한 번도 안 보여준 곳 — 이번 주 신입이 맨 앞
+        else t1.push(p);                                               // 보여준 적 있는 미방문
       }
-      t0.sort((a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || dSort(a, b)); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
+      t0.sort((a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || dSort(a, b));
+      tN.sort((a, b) => (slotRank(a) - slotRank(b)) || (openRank(a) - openRank(b)) || String(b.created_at).localeCompare(String(a.created_at)));   // 최근에 온 집부터
+      tU.sort(sortFn); t1.sort(sortFn); t2.sort(sortFn); t3.sort(sortFn);
       // 예전의 날짜 씨앗 회전은 하루에 한 칸씩만 돌아 사실상 같은 순서였다 — 노출 횟수 정렬로 대체 (2026-09-02)
-      let ranked = t0.concat(t1, t2, t3);
+      let ranked = t0.concat(tN, tU, t1, t2, t3);
       if (ranked.length < 3) {   // 3곳을 못 채우면 쿨다운·중복 제외를 한 단계 완화
         const spare = relax.concat(otherSlotSeen).sort(sortFn);
         if (spare.length) ranked = ranked.concat(spare);
@@ -2372,6 +2379,15 @@
       recentPickIds = new Set(past.filter(k => k.pick_date >= d3).map(k => k.place_id));
       recentPickCount = new Map();
       past.forEach(k => recentPickCount.set(k.place_id, (recentPickCount.get(k.place_id) || 0) + 1));
+      // 전체 노출 이력 — 1,000행 상한에 안 잘리게 나눠 읽는다
+      const STEP = 1000, seen = new Set();
+      for (let from = 0; ; from += STEP) {
+        const { data, error } = await sb.from('picks').select('id,place_id').eq('status', 'shown').lt('pick_date', todayStr()).order('id').range(from, from + STEP - 1);
+        if (error) { if (!from) return; break; }   // 첫 장부터 실패하면 기존 값 유지
+        (data || []).forEach(k => seen.add(k.place_id));
+        if (!data || data.length < STEP) break;
+      }
+      everShownIds = seen;
     }
 
     // ── 부팅
